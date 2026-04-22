@@ -375,9 +375,10 @@
   <div class="modal" onclick="event.stopPropagation()">
     <h2 id="modal-title">Add Application</h2>
     <div class="form-grid">
-      <div class="field full">
+      <div class="field full ac-wrap">
         <label>Company</label>
-        <input id="f-company" type="text" placeholder="e.g. Nike">
+        <input id="f-company" type="text" placeholder="e.g. Nike" autocomplete="off">
+        <div id="f-company-dropdown" class="ac-dropdown"></div>
       </div>
       <div class="field full">
         <label>Role / Title</label>
@@ -623,8 +624,13 @@ async function loadCompanies() {
 }
 
 function initCompanyAutocomplete() {
-  const input    = document.getElementById('c-company');
-  const dropdown = document.getElementById('company-dropdown');
+  attachAC('f-company', 'f-company-dropdown');
+  attachAC('c-company', 'company-dropdown');
+}
+
+function attachAC(inputId, dropdownId) {
+  const input    = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
 
   function closeAC() {
     dropdown.classList.remove('open');
