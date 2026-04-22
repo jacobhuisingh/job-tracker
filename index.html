@@ -437,7 +437,7 @@
       </div>
       <div class="field">
         <label>Company</label>
-        <input id="c-company" type="text" list="company-suggestions" placeholder="e.g. Nike" autocomplete="off">
+        <input id="c-company" type="text" list="company-suggestions" placeholder="e.g. Nike" autocomplete="nope">
         <datalist id="company-suggestions"></datalist>
       </div>
       <div class="field">
@@ -587,11 +587,20 @@ function staleDays(a) {
 
 // ── Companies typeahead ───────────────────────────────────
 async function loadCompanies() {
-  const { data } = await sb.from('job_applications').select('company');
-  if (!data) return;
+  const { data, error } = await sb.from('job_applications').select('company');
+  if (error || !data) return;
   allCompanies = [...new Set(data.map(r => r.company).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  populateCompanyDatalist();
+}
+
+function populateCompanyDatalist() {
   const dl = document.getElementById('company-suggestions');
-  dl.innerHTML = allCompanies.map(c => `<option value="${esc(c)}">`).join('');
+  dl.innerHTML = '';
+  allCompanies.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    dl.appendChild(opt);
+  });
 }
 
 // ── Auto-update: Applied → No Response after AUTO_DAYS ────
@@ -825,8 +834,7 @@ async function saveApplication() {
   // Refresh typeahead with any new company
   if (!allCompanies.includes(company)) {
     allCompanies = [...allCompanies, company].sort((a, b) => a.localeCompare(b));
-    document.getElementById('company-suggestions').innerHTML =
-      allCompanies.map(c => `<option value="${esc(c)}">`).join('');
+    populateCompanyDatalist();
   }
 
   await runAutoUpdate();
@@ -1041,8 +1049,7 @@ async function saveContact() {
     // Add new company to typeahead if needed
     if (row.company && !allCompanies.includes(row.company)) {
       allCompanies = [...allCompanies, row.company].sort((a, b) => a.localeCompare(b));
-      document.getElementById('company-suggestions').innerHTML =
-        allCompanies.map(c => `<option value="${esc(c)}">`).join('');
+      populateCompanyDatalist();
     }
   }
 
