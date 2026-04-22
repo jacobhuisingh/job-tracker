@@ -182,7 +182,7 @@
     .modal {
       background: white; border-radius: 16px;
       padding: 1.75rem 2rem;
-      width: 100%; max-width: 520px;
+      width: 100%; max-width: 560px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
       margin: 1rem;
       max-height: 90vh; overflow-y: auto;
@@ -238,6 +238,80 @@
     .import-note { font-size: 0.8rem; color: #718096; margin-bottom: 0.75rem; line-height: 1.5; }
     .import-note code { background: #f0f4ff; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.78rem; color: #553c9a; }
 
+    /* ── Contacts section (inside edit modal) ── */
+    .contacts-section {
+      margin-top: 1.5rem;
+      border-top: 2px solid #f0f4ff;
+      padding-top: 1.25rem;
+    }
+    .contacts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .contacts-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .btn-add-contact {
+      padding: 0.28rem 0.7rem;
+      border: 2px solid #667eea;
+      border-radius: 7px;
+      background: white;
+      color: #667eea;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .btn-add-contact:hover { background: #667eea; color: white; }
+    .contact-list { display: flex; flex-direction: column; gap: 0.45rem; }
+    .contact-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      background: #f7f8fc;
+      border-radius: 9px;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .contact-card:hover { border-color: #667eea; background: #f0f4ff; }
+    .contact-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+      letter-spacing: 0.03em;
+    }
+    .contact-info { flex: 1; min-width: 0; }
+    .contact-name { font-weight: 600; color: #2d3748; font-size: 0.86rem; }
+    .contact-meta { font-size: 0.76rem; color: #718096; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-rel {
+      font-size: 0.68rem; font-weight: 700;
+      padding: 0.18rem 0.55rem;
+      border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+    }
+    .rel-recruiter  { background: #ebf4ff; color: #2b6cb0; }
+    .rel-employee   { background: #f0fff4; color: #22543d; }
+    .rel-referral   { background: #faf5ff; color: #553c9a; }
+    .rel-networking { background: #fffaf0; color: #c05621; }
+    .rel-other      { background: #f7fafc; color: #718096; }
+    .contacts-empty   { font-size: 0.82rem; color: #a0aec0; text-align: center; padding: 1rem 0.5rem; }
+    .contacts-loading { font-size: 0.82rem; color: #667eea; text-align: center; padding: 0.75rem; }
+
+    /* ── Contact modal (stacks above app modal) ── */
+    #contact-overlay { z-index: 200; }
+    #contact-overlay .modal { max-width: 420px; }
+
     /* ── Tooltip ── */
     [title] { cursor: help; }
     tr[title] { cursor: pointer; }
@@ -263,7 +337,7 @@
 
 <main id="main"></main>
 
-<!-- ── Add / Edit Modal ── -->
+<!-- ── Add / Edit Application Modal ── -->
 <div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <h2 id="modal-title">Add Application</h2>
@@ -321,11 +395,74 @@
         <textarea id="f-notes" placeholder="Optional notes, contacts, links…"></textarea>
       </div>
     </div>
+
+    <!-- Contacts section — shown only when editing an existing application -->
+    <div class="contacts-section" id="contacts-section" style="display:none">
+      <div class="contacts-header">
+        <span class="contacts-title">Contacts</span>
+        <button class="btn-add-contact" onclick="openContactModal()">+ Add Contact</button>
+      </div>
+      <div class="contact-list" id="contact-list">
+        <div class="contacts-loading">Loading…</div>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn-danger" id="btn-delete" onclick="deleteEditing()" style="display:none">Delete</button>
       <div class="modal-actions-right">
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
         <button class="btn-save" onclick="saveApplication()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add / Edit Contact Modal ── -->
+<div class="overlay" id="contact-overlay" onclick="handleContactOverlayClick(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2 id="contact-modal-title">Add Contact</h2>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Name</label>
+        <input id="c-name" type="text" placeholder="e.g. Jane Smith">
+      </div>
+      <div class="field">
+        <label>Their Title / Role</label>
+        <input id="c-title" type="text" placeholder="e.g. Engineering Manager">
+      </div>
+      <div class="field">
+        <label>Their Company</label>
+        <input id="c-company" type="text" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input id="c-email" type="email" placeholder="e.g. jane@acme.com">
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input id="c-phone" type="tel" placeholder="e.g. (415) 555-0100">
+      </div>
+      <div class="field full">
+        <label>How You Know Them</label>
+        <select id="c-relationship">
+          <option value="">— Select —</option>
+          <option value="recruiter">Recruiter</option>
+          <option value="employee">Employee at Company</option>
+          <option value="referral">Referral</option>
+          <option value="networking">Networking</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Notes</label>
+        <textarea id="c-notes" placeholder="e.g. Met at React Conf, referred by Alex, prefers email…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="c-btn-delete" onclick="deleteContact()" style="display:none">Delete</button>
+      <div class="modal-actions-right">
+        <button class="btn-cancel" onclick="closeContactModal()">Cancel</button>
+        <button class="btn-save" onclick="saveContact()">Save</button>
       </div>
     </div>
   </div>
@@ -361,6 +498,7 @@ const sb = supabase.createClient(
   'sb_publishable_SjzxBWHr0RpXZmDwWOjfHw_0WcsgmY8'
 );
 
+// ── App row mapping ───────────────────────────────────────
 function toRow(a) {
   return {
     id:             a.id,
@@ -431,6 +569,13 @@ const SOURCE_MAP  = {
   'company-website': 'Company Website', other: 'Other',
 };
 const LOC_MAP = { remote: 'Remote', hybrid: 'Hybrid', 'in-office': 'In Office' };
+const REL_MAP = {
+  recruiter:  'Recruiter',
+  employee:   'Employee',
+  referral:   'Referral',
+  networking: 'Networking',
+  other:      'Other',
+};
 
 const WARN_DAYS = 14;
 const AUTO_DAYS = 21;
@@ -583,7 +728,7 @@ function renderTable() {
   </table>`;
 }
 
-// ── Modal ─────────────────────────────────────────────────
+// ── Application Modal ─────────────────────────────────────
 let editingId = null;
 
 function buildStatusOptions(selected) {
@@ -592,25 +737,30 @@ function buildStatusOptions(selected) {
   ).join('');
 }
 
-function openModal(id) {
+async function openModal(id) {
   editingId = id || null;
   document.getElementById('f-status').innerHTML = buildStatusOptions('applied');
+
+  const contactsSection = document.getElementById('contacts-section');
 
   if (id) {
     const a = apps.find(x => x.id === id);
     if (!a) return;
     document.getElementById('modal-title').textContent = 'Edit Application';
-    document.getElementById('f-company').value  = a.company  || '';
-    document.getElementById('f-role').value     = a.role     || '';
-    document.getElementById('f-date').value     = a.date     || '';
+    document.getElementById('f-company').value  = a.company      || '';
+    document.getElementById('f-role').value     = a.role         || '';
+    document.getElementById('f-date').value     = a.date         || '';
     document.getElementById('f-followup').value = a.followUpDate || '';
     document.getElementById('f-status').innerHTML = buildStatusOptions(a.status || 'applied');
-    document.getElementById('f-source').value   = a.source   || '';
+    document.getElementById('f-source').value   = a.source       || '';
     document.getElementById('f-loctype').value  = a.locationType || '';
-    document.getElementById('f-city').value     = a.city     || '';
-    document.getElementById('f-salary').value   = a.salaryRange || '';
-    document.getElementById('f-notes').value    = a.notes    || '';
+    document.getElementById('f-city').value     = a.city         || '';
+    document.getElementById('f-salary').value   = a.salaryRange  || '';
+    document.getElementById('f-notes').value    = a.notes        || '';
     document.getElementById('btn-delete').style.display = '';
+    contactsSection.style.display = '';
+    document.getElementById('contact-list').innerHTML =
+      '<div class="contacts-loading">Loading contacts…</div>';
   } else {
     document.getElementById('modal-title').textContent = 'Add Application';
     document.getElementById('f-company').value  = '';
@@ -623,16 +773,20 @@ function openModal(id) {
     document.getElementById('f-salary').value   = '';
     document.getElementById('f-notes').value    = '';
     document.getElementById('btn-delete').style.display = 'none';
+    contactsSection.style.display = 'none';
   }
 
   toggleCity();
   document.getElementById('overlay').classList.add('open');
   setTimeout(() => document.getElementById('f-company').focus(), 50);
+
+  if (id) await loadAndRenderContacts(id);
 }
 
 function closeModal() {
   document.getElementById('overlay').classList.remove('open');
   editingId = null;
+  currentContacts = [];
 }
 
 function handleOverlayClick(e) {
@@ -691,7 +845,7 @@ async function saveApplication() {
 
 async function deleteEditing() {
   if (!editingId) return;
-  if (!confirm('Delete this application?')) return;
+  if (!confirm('Delete this application? Linked contacts will also be deleted.')) return;
   try {
     await dbDelete(editingId);
   } catch (err) {
@@ -704,7 +858,7 @@ async function deleteEditing() {
 }
 
 async function deleteApp(id) {
-  if (!confirm('Delete this application?')) return;
+  if (!confirm('Delete this application? Linked contacts will also be deleted.')) return;
   try {
     await dbDelete(id);
   } catch (err) {
@@ -713,6 +867,135 @@ async function deleteApp(id) {
   }
   apps = apps.filter(a => a.id !== id);
   render();
+}
+
+// ── Contacts ──────────────────────────────────────────────
+let currentContacts = [];
+let editingContactId = null;
+
+async function loadAndRenderContacts(appId) {
+  const { data, error } = await sb
+    .from('contacts')
+    .select('*')
+    .eq('job_application_id', appId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    document.getElementById('contact-list').innerHTML =
+      '<div class="contacts-empty">Failed to load contacts.</div>';
+    return;
+  }
+  currentContacts = data || [];
+  renderContacts();
+}
+
+function renderContacts() {
+  const el = document.getElementById('contact-list');
+  if (!currentContacts.length) {
+    el.innerHTML = '<div class="contacts-empty">No contacts yet — add a recruiter, employee, or anyone you spoke with.</div>';
+    return;
+  }
+  el.innerHTML = currentContacts.map(c => {
+    const initials = (c.name || '?').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const relLabel = REL_MAP[c.relationship] || '';
+    const relCls   = c.relationship ? `rel-${c.relationship}` : 'rel-other';
+    const meta     = [c.title, c.company].filter(Boolean).join(' · ');
+    return `<div class="contact-card" onclick="openContactModal('${c.id}')">
+      <div class="contact-avatar">${esc(initials)}</div>
+      <div class="contact-info">
+        <div class="contact-name">${esc(c.name)}</div>
+        ${meta ? `<div class="contact-meta">${esc(meta)}</div>` : ''}
+      </div>
+      ${relLabel ? `<span class="contact-rel ${relCls}">${esc(relLabel)}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openContactModal(contactId) {
+  editingContactId = contactId || null;
+
+  if (contactId) {
+    const c = currentContacts.find(x => x.id === contactId);
+    if (!c) return;
+    document.getElementById('contact-modal-title').textContent = 'Edit Contact';
+    document.getElementById('c-name').value         = c.name         || '';
+    document.getElementById('c-title').value        = c.title        || '';
+    document.getElementById('c-company').value      = c.company      || '';
+    document.getElementById('c-email').value        = c.email        || '';
+    document.getElementById('c-phone').value        = c.phone        || '';
+    document.getElementById('c-relationship').value = c.relationship || '';
+    document.getElementById('c-notes').value        = c.notes        || '';
+    document.getElementById('c-btn-delete').style.display = '';
+  } else {
+    document.getElementById('contact-modal-title').textContent = 'Add Contact';
+    document.getElementById('c-name').value         = '';
+    document.getElementById('c-title').value        = '';
+    // Pre-fill company from the linked application
+    document.getElementById('c-company').value      = document.getElementById('f-company').value || '';
+    document.getElementById('c-email').value        = '';
+    document.getElementById('c-phone').value        = '';
+    document.getElementById('c-relationship').value = '';
+    document.getElementById('c-notes').value        = '';
+    document.getElementById('c-btn-delete').style.display = 'none';
+  }
+
+  document.getElementById('contact-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('c-name').focus(), 50);
+}
+
+function closeContactModal() {
+  document.getElementById('contact-overlay').classList.remove('open');
+  editingContactId = null;
+}
+
+function handleContactOverlayClick(e) {
+  if (e.target === document.getElementById('contact-overlay')) closeContactModal();
+}
+
+async function saveContact() {
+  const name = document.getElementById('c-name').value.trim();
+  if (!name) { alert('Name is required.'); return; }
+
+  const now = new Date().toISOString();
+  const row = {
+    job_application_id: editingId,
+    name,
+    title:        document.getElementById('c-title').value.trim()        || null,
+    company:      document.getElementById('c-company').value.trim()      || null,
+    email:        document.getElementById('c-email').value.trim()        || null,
+    phone:        document.getElementById('c-phone').value.trim()        || null,
+    relationship: document.getElementById('c-relationship').value        || null,
+    notes:        document.getElementById('c-notes').value.trim()        || null,
+    updated_at:   now,
+  };
+
+  if (editingContactId) {
+    row.id         = editingContactId;
+    row.created_at = currentContacts.find(c => c.id === editingContactId)?.created_at || now;
+    const { error } = await sb.from('contacts').upsert(row);
+    if (error) { alert('Failed to save contact: ' + error.message); return; }
+    const idx = currentContacts.findIndex(c => c.id === editingContactId);
+    currentContacts[idx] = row;
+  } else {
+    row.id         = Date.now().toString();
+    row.created_at = now;
+    const { error } = await sb.from('contacts').insert(row);
+    if (error) { alert('Failed to save contact: ' + error.message); return; }
+    currentContacts.push(row);
+  }
+
+  closeContactModal();
+  renderContacts();
+}
+
+async function deleteContact() {
+  if (!editingContactId) return;
+  if (!confirm('Delete this contact?')) return;
+  const { error } = await sb.from('contacts').delete().eq('id', editingContactId);
+  if (error) { alert('Failed to delete contact: ' + error.message); return; }
+  currentContacts = currentContacts.filter(c => c.id !== editingContactId);
+  closeContactModal();
+  renderContacts();
 }
 
 // ── CSV Export ────────────────────────────────────────────
