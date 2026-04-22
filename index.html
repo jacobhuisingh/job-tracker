@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f7f8fc;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      box-shadow: 0 2px 12px rgba(102,126,234,0.3);
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 0.82rem; opacity: 0.8; margin-top: 0.1rem; }
+    .header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    .hdr-btn {
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 7px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .hdr-btn:hover { background: rgba(255,255,255,0.28); }
+    .hdr-btn.primary {
+      background: white;
+      color: #764ba2;
+      border-color: white;
+    }
+    .hdr-btn.primary:hover { opacity: 0.88; }
+
+    /* ── Dashboard ── */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.85rem;
+      padding: 1.25rem 2rem 0;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.1s;
+      border: 2px solid transparent;
+    }
+    .stat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .stat-card.active-card { border-color: #667eea; }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #a0aec0; font-weight: 700; }
+    .stat-value { font-size: 1.9rem; font-weight: 800; margin-top: 0.2rem; line-height: 1; }
+    .stat-sub   { font-size: 0.75rem; color: #a0aec0; margin-top: 0.2rem; }
+    .stat-card.c-total     .stat-value { color: #667eea; }
+    .stat-card.c-active    .stat-value { color: #3182ce; }
+    .stat-card.c-progress  .stat-value { color: #d69e2e; }
+    .stat-card.c-offer     .stat-value { color: #276749; }
+    .stat-card.c-followup  .stat-value { color: #dd6b20; }
+    .stat-card.c-rejected  .stat-value { color: #c53030; }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 0.4rem;
+      padding: 1rem 2rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #4a5568;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .filter-btn:hover  { border-color: #667eea; color: #667eea; }
+    .filter-btn.active { background: #667eea; border-color: #667eea; color: white; }
+    .fcount { font-size: 0.7rem; opacity: 0.7; margin-left: 3px; }
+
+    /* ── Table ── */
+    main { padding: 0 2rem 3rem; overflow-x: auto; }
+
+    .empty { text-align: center; padding: 4rem 1rem; color: #a0aec0; }
+    .empty svg { margin-bottom: 1rem; opacity: 0.4; }
+    .empty p { font-size: 1rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+      min-width: 700px;
+    }
+    thead tr { background: #f0f4ff; }
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #667eea;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-top: 1px solid #f0f0f5;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    tbody tr:hover td { background: #fafbff; }
+    td { padding: 0.75rem 1rem; font-size: 0.88rem; vertical-align: middle; }
+
+    .td-company  { font-weight: 600; color: #2d3748; white-space: nowrap; }
+    .td-role     { color: #4a5568; }
+    .td-location { color: #718096; font-size: 0.82rem; white-space: nowrap; }
+    .td-date     { color: #718096; font-size: 0.82rem; white-space: nowrap; }
+    .td-followup { font-size: 0.82rem; white-space: nowrap; }
+    .td-followup.overdue { color: #c53030; font-weight: 600; }
+    .td-followup.soon    { color: #d69e2e; font-weight: 600; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 0.22rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-applied        { background: #ebf4ff; color: #2b6cb0; }
+    .badge-applied-warn   { background: #fef9c3; color: #854d0e; }
+    .badge-no-response    { background: #fee2e2; color: #991b1b; }
+    .badge-phone-screen   { background: #e0f2fe; color: #0369a1; }
+    .badge-interview      { background: #fefcbf; color: #975a16; }
+    .badge-final-round    { background: #fffaf0; color: #c05621; }
+    .badge-offer          { background: #f0fff4; color: #22543d; }
+    .badge-rejected       { background: #fff5f5; color: #c53030; }
+    .badge-withdrawn      { background: #f7fafc; color: #718096; }
+
+    .actions { display: flex; gap: 0.4rem; }
+    .icon-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 0.3rem; border-radius: 6px;
+      color: #a0aec0; transition: all 0.15s; line-height: 0;
+    }
+    .icon-btn:hover        { background: #f0f4ff; color: #667eea; }
+    .icon-btn.del:hover    { background: #fff5f5; color: #e53e3e; }
+
+    /* ── Modals ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      justify-content: center; align-items: center; z-index: 100;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: white; border-radius: 16px;
+      padding: 1.75rem 2rem;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      margin: 1rem;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal h2 { font-size: 1.15rem; margin-bottom: 1.25rem; color: #2d3748; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field { display: flex; flex-direction: column; gap: 0.28rem; }
+    label { font-size: 0.78rem; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.03em; }
+    input, select, textarea {
+      padding: 0.55rem 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #2d3748;
+      transition: border-color 0.15s;
+      background: white;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .modal-actions { display: flex; gap: 0.7rem; margin-top: 1.4rem; justify-content: space-between; align-items: center; }
+    .modal-actions-right { display: flex; gap: 0.7rem; }
+
+    .btn-danger {
+      padding: 0.55rem 1rem;
+      border: 2px solid #fed7d7;
+      border-radius: 8px; background: white;
+      font-size: 0.85rem; cursor: pointer;
+      color: #c53030; font-family: inherit;
+    }
+    .btn-danger:hover { background: #fff5f5; }
+    .btn-cancel {
+      padding: 0.55rem 1.1rem;
+      border: 2px solid #e2e8f0; border-radius: 8px;
+      background: white; font-size: 0.88rem;
+      cursor: pointer; color: #4a5568; font-family: inherit;
+    }
+    .btn-cancel:hover { border-color: #cbd5e0; }
+    .btn-save {
+      padding: 0.55rem 1.3rem; border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; font-size: 0.88rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+    }
+    .btn-save:hover { opacity: 0.88; }
+
+    /* ── Import modal ── */
+    .import-note { font-size: 0.8rem; color: #718096; margin-bottom: 0.75rem; line-height: 1.5; }
+    .import-note code { background: #f0f4ff; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.78rem; color: #553c9a; }
+
+    /* ── Tooltip ── */
+    [title] { cursor: help; }
+    tr[title] { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Job Tracker</h1>
+    <p id="subtitle">Track your applications</p>
+  </div>
+  <div class="header-actions">
+    <button class="hdr-btn" onclick="openImport()">Import CSV</button>
+    <button class="hdr-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="hdr-btn primary" onclick="openModal()">+ Add Application</button>
+  </div>
+</header>
+
+<div class="dashboard" id="dashboard"></div>
+
+<div class="filters" id="filters"></div>
+
+<main id="main"></main>
+
+<!-- ── Add / Edit Modal ── -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2 id="modal-title">Add Application</h2>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Company</label>
+        <input id="f-company" type="text" placeholder="e.g. Acme Corp">
+      </div>
+      <div class="field full">
+        <label>Role / Title</label>
+        <input id="f-role" type="text" placeholder="e.g. Software Engineer">
+      </div>
+      <div class="field">
+        <label>Date Applied</label>
+        <input id="f-date" type="date">
+      </div>
+      <div class="field">
+        <label>Follow Up Date</label>
+        <input id="f-followup" type="date">
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="f-status"></select>
+      </div>
+      <div class="field">
+        <label>Found Via</label>
+        <select id="f-source">
+          <option value="">— Select —</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="indeed">Indeed</option>
+          <option value="referral">Referral</option>
+          <option value="company-website">Company Website</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Location Type</label>
+        <select id="f-loctype" onchange="toggleCity()">
+          <option value="">— Select —</option>
+          <option value="remote">Remote</option>
+          <option value="hybrid">Hybrid</option>
+          <option value="in-office">In Office</option>
+        </select>
+      </div>
+      <div class="field" id="city-field" style="display:none">
+        <label>City</label>
+        <input id="f-city" type="text" placeholder="e.g. San Francisco, CA">
+      </div>
+      <div class="field full">
+        <label>Salary Range</label>
+        <input id="f-salary" type="text" placeholder="e.g. $90k – $120k">
+      </div>
+      <div class="field full">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="Optional notes, contacts, links…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="btn-delete" onclick="deleteEditing()" style="display:none">Delete</button>
+      <div class="modal-actions-right">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveApplication()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Import Modal ── -->
+<div class="overlay" id="import-overlay" onclick="handleImportOverlayClick(event)">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:440px">
+    <h2>Import CSV</h2>
+    <p class="import-note">
+      Select a CSV file previously exported from Job Tracker, or any CSV with columns:
+      <code>company</code>, <code>role</code>, <code>date</code>, <code>status</code>.
+      Duplicate IDs will be skipped.
+    </p>
+    <div class="field">
+      <label>CSV File</label>
+      <input type="file" id="import-file" accept=".csv">
+    </div>
+    <div class="modal-actions" style="margin-top:1rem">
+      <div></div>
+      <div class="modal-actions-right">
+        <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+        <button class="btn-save" onclick="doImport()">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase ──────────────────────────────────────────────
+const sb = supabase.createClient(
+  'https://puidoehyimlndayjfvot.supabase.co',
+  'sb_publishable_SjzxBWHr0RpXZmDwWOjfHw_0WcsgmY8'
+);
+
+function toRow(a) {
+  return {
+    id:             a.id,
+    company:        a.company,
+    role:           a.role,
+    date:           a.date         || null,
+    status:         a.status,
+    follow_up_date: a.followUpDate || null,
+    source:         a.source       || null,
+    location_type:  a.locationType || null,
+    city:           a.city         || null,
+    salary_range:   a.salaryRange  || null,
+    notes:          a.notes        || null,
+    created_at:     a.createdAt    || new Date().toISOString(),
+    last_updated:   a.lastUpdated  || new Date().toISOString(),
+  };
+}
+
+function fromRow(r) {
+  return {
+    id:           r.id,
+    company:      r.company,
+    role:         r.role,
+    date:         r.date           || '',
+    status:       r.status,
+    followUpDate: r.follow_up_date || '',
+    source:       r.source         || '',
+    locationType: r.location_type  || '',
+    city:         r.city           || '',
+    salaryRange:  r.salary_range   || '',
+    notes:        r.notes          || '',
+    createdAt:    r.created_at     || '',
+    lastUpdated:  r.last_updated   || '',
+  };
+}
+
+async function dbUpsert(app) {
+  const { error } = await sb.from('job_applications').upsert(toRow(app));
+  if (error) throw error;
+}
+
+async function dbUpsertMany(appsArr) {
+  if (!appsArr.length) return;
+  const { error } = await sb.from('job_applications').upsert(appsArr.map(toRow));
+  if (error) throw error;
+}
+
+async function dbDelete(id) {
+  const { error } = await sb.from('job_applications').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Constants ──────────────────────────────────────────────
+const STATUSES = [
+  { value: 'applied',       label: 'Applied' },
+  { value: 'no-response',   label: 'Applied – No Response' },
+  { value: 'phone-screen',  label: 'Phone Screen' },
+  { value: 'interview',     label: 'Interview' },
+  { value: 'final-round',   label: 'Final Round' },
+  { value: 'offer',         label: 'Offer' },
+  { value: 'rejected',      label: 'Rejected' },
+  { value: 'withdrawn',     label: 'Withdrawn' },
+];
+const STATUS_MAP  = Object.fromEntries(STATUSES.map(s => [s.value, s.label]));
+const TERMINAL    = new Set(['offer', 'rejected', 'withdrawn']);
+const SOURCE_MAP  = {
+  linkedin: 'LinkedIn', indeed: 'Indeed', referral: 'Referral',
+  'company-website': 'Company Website', other: 'Other',
+};
+const LOC_MAP = { remote: 'Remote', hybrid: 'Hybrid', 'in-office': 'In Office' };
+
+const WARN_DAYS = 14;
+const AUTO_DAYS = 21;
+
+const CSV_FIELDS = ['id','company','role','date','status','salaryRange','locationType','city','followUpDate','source','notes','createdAt','lastUpdated'];
+
+// ── Data ──────────────────────────────────────────────────
+let apps = [];
+let activeFilter = 'all';
+
+function staleDays(a) {
+  if (!a.date) return 0;
+  return (Date.now() - new Date(a.date + 'T00:00:00').getTime()) / 86400000;
+}
+
+// ── Auto-update: Applied → No Response after AUTO_DAYS ────
+async function runAutoUpdate() {
+  const toUpdate = apps.filter(a => a.status === 'applied' && staleDays(a) >= AUTO_DAYS);
+  if (!toUpdate.length) return;
+  const now = new Date().toISOString();
+  toUpdate.forEach(a => { a.status = 'no-response'; a.lastUpdated = now; });
+  const { error } = await sb.from('job_applications')
+    .update({ status: 'no-response', last_updated: now })
+    .in('id', toUpdate.map(a => a.id));
+  if (error) console.error('Auto-update failed:', error);
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+function renderDashboard() {
+  const today = todayStr();
+  const total      = apps.length;
+  const active     = apps.filter(a => !TERMINAL.has(a.status)).length;
+  const inProgress = apps.filter(a => ['phone-screen','interview','final-round'].includes(a.status)).length;
+  const offers     = apps.filter(a => a.status === 'offer').length;
+  const rejected   = apps.filter(a => a.status === 'rejected').length;
+  const followup   = apps.filter(a => a.followUpDate && a.followUpDate <= today && !TERMINAL.has(a.status)).length;
+
+  const cards = [
+    { key:'all',      cls:'c-total',    label:'Total',       value:total,      sub:'applications' },
+    { key:'_active',  cls:'c-active',   label:'Active',      value:active,     sub:'not yet terminal' },
+    { key:'_prog',    cls:'c-progress', label:'In Progress', value:inProgress, sub:'screen / interview' },
+    { key:'offer',    cls:'c-offer',    label:'Offers',      value:offers,     sub:'received' },
+    { key:'_followup',cls:'c-followup', label:'Follow Up',   value:followup,   sub:'due or overdue' },
+    { key:'rejected', cls:'c-rejected', label:'Rejected',    value:rejected,   sub:'' },
+  ];
+
+  document.getElementById('dashboard').innerHTML = cards.map(c => `
+    <div class="stat-card ${c.cls} ${activeFilter === c.key ? 'active-card' : ''}"
+         onclick="setFilter('${c.key}')">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+      ${c.sub ? `<div class="stat-sub">${c.sub}</div>` : ''}
+    </div>`).join('');
+}
+
+// ── Filters ───────────────────────────────────────────────
+function renderFilters() {
+  const filterDefs = [
+    { key: 'all', label: 'All' },
+    ...STATUSES.map(s => ({ key: s.value, label: s.label })),
+  ];
+  document.getElementById('filters').innerHTML = filterDefs.map(f => {
+    const cnt = f.key === 'all' ? apps.length : apps.filter(a => a.status === f.key).length;
+    return `<button class="filter-btn ${activeFilter === f.key ? 'active' : ''}"
+              data-filter="${f.key}" onclick="setFilter('${f.key}')">
+              ${f.label}<span class="fcount">${cnt}</span>
+            </button>`;
+  }).join('');
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  renderDashboard();
+  renderFilters();
+  renderTable();
+}
+
+// ── Table ─────────────────────────────────────────────────
+function visibleApps() {
+  const today = todayStr();
+  if (activeFilter === 'all')      return apps;
+  if (activeFilter === '_active')  return apps.filter(a => !TERMINAL.has(a.status));
+  if (activeFilter === '_prog')    return apps.filter(a => ['phone-screen','interview','final-round'].includes(a.status));
+  if (activeFilter === '_followup')return apps.filter(a => a.followUpDate && a.followUpDate <= today && !TERMINAL.has(a.status));
+  return apps.filter(a => a.status === activeFilter);
+}
+
+function renderTable() {
+  const visible = visibleApps();
+  const main = document.getElementById('main');
+  if (visible.length === 0) {
+    main.innerHTML = `<div class="empty">
+      <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <p>${activeFilter === 'all' ? 'No applications yet. Add one to get started.' : 'No applications match this filter.'}</p>
+    </div>`;
+    return;
+  }
+
+  const today = todayStr();
+  main.innerHTML = `<table>
+    <thead><tr>
+      <th>Company</th>
+      <th>Role</th>
+      <th>Location</th>
+      <th>Applied</th>
+      <th>Follow Up</th>
+      <th>Status</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+      ${visible.map(a => {
+        const days     = staleDays(a);
+        const badgeCls = (a.status === 'applied' && days >= WARN_DAYS)
+          ? 'badge-applied-warn'
+          : `badge-${a.status}`;
+
+        let followupHtml = '—';
+        if (a.followUpDate) {
+          const isOverdue = a.followUpDate < today;
+          const isSoon    = !isOverdue && a.followUpDate <= addDays(today, 3);
+          const cls = isOverdue ? 'overdue' : isSoon ? 'soon' : '';
+          followupHtml = `<span class="td-followup ${cls}">${formatDate(a.followUpDate)}</span>`;
+        }
+
+        const loc = a.locationType
+          ? (LOC_MAP[a.locationType] + (a.city && a.locationType !== 'remote' ? ` · ${esc(a.city)}` : ''))
+          : '—';
+
+        return `<tr onclick="openModal('${a.id}')" title="Click to edit">
+          <td class="td-company">${esc(a.company)}</td>
+          <td class="td-role">${esc(a.role)}</td>
+          <td class="td-location">${loc}</td>
+          <td class="td-date">${a.date ? formatDate(a.date) : '—'}</td>
+          <td>${followupHtml}</td>
+          <td><span class="badge ${badgeCls}">${STATUS_MAP[a.status] || a.status}</span></td>
+          <td class="actions" onclick="event.stopPropagation()">
+            <button class="icon-btn del" title="Delete" onclick="deleteApp('${a.id}')">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── Modal ─────────────────────────────────────────────────
+let editingId = null;
+
+function buildStatusOptions(selected) {
+  return STATUSES.map(s =>
+    `<option value="${s.value}" ${s.value === selected ? 'selected' : ''}>${s.label}</option>`
+  ).join('');
+}
+
+function openModal(id) {
+  editingId = id || null;
+  document.getElementById('f-status').innerHTML = buildStatusOptions('applied');
+
+  if (id) {
+    const a = apps.find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('modal-title').textContent = 'Edit Application';
+    document.getElementById('f-company').value  = a.company  || '';
+    document.getElementById('f-role').value     = a.role     || '';
+    document.getElementById('f-date').value     = a.date     || '';
+    document.getElementById('f-followup').value = a.followUpDate || '';
+    document.getElementById('f-status').innerHTML = buildStatusOptions(a.status || 'applied');
+    document.getElementById('f-source').value   = a.source   || '';
+    document.getElementById('f-loctype').value  = a.locationType || '';
+    document.getElementById('f-city').value     = a.city     || '';
+    document.getElementById('f-salary').value   = a.salaryRange || '';
+    document.getElementById('f-notes').value    = a.notes    || '';
+    document.getElementById('btn-delete').style.display = '';
+  } else {
+    document.getElementById('modal-title').textContent = 'Add Application';
+    document.getElementById('f-company').value  = '';
+    document.getElementById('f-role').value     = '';
+    document.getElementById('f-date').value     = todayStr();
+    document.getElementById('f-followup').value = '';
+    document.getElementById('f-source').value   = '';
+    document.getElementById('f-loctype').value  = '';
+    document.getElementById('f-city').value     = '';
+    document.getElementById('f-salary').value   = '';
+    document.getElementById('f-notes').value    = '';
+    document.getElementById('btn-delete').style.display = 'none';
+  }
+
+  toggleCity();
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-company').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  editingId = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeModal();
+}
+
+function toggleCity() {
+  const v = document.getElementById('f-loctype').value;
+  document.getElementById('city-field').style.display = (v === 'hybrid' || v === 'in-office') ? '' : 'none';
+}
+
+async function saveApplication() {
+  const company = document.getElementById('f-company').value.trim();
+  const role    = document.getElementById('f-role').value.trim();
+  if (!company || !role) { alert('Company and Role are required.'); return; }
+
+  const now = new Date().toISOString();
+  const data = {
+    company,
+    role,
+    date:        document.getElementById('f-date').value,
+    followUpDate:document.getElementById('f-followup').value,
+    status:      document.getElementById('f-status').value,
+    source:      document.getElementById('f-source').value,
+    locationType:document.getElementById('f-loctype').value,
+    city:        document.getElementById('f-city').value.trim(),
+    salaryRange: document.getElementById('f-salary').value.trim(),
+    notes:       document.getElementById('f-notes').value.trim(),
+    lastUpdated: now,
+  };
+
+  let appObj;
+  if (editingId) {
+    const idx = apps.findIndex(a => a.id === editingId);
+    if (apps[idx].status === 'no-response' && data.status === 'no-response' && staleDays(data) < AUTO_DAYS) {
+      data.status = 'applied';
+    }
+    appObj = { ...apps[idx], ...data };
+    apps[idx] = appObj;
+  } else {
+    appObj = { id: Date.now().toString(), createdAt: now, ...data };
+    apps.unshift(appObj);
+  }
+
+  try {
+    await dbUpsert(appObj);
+  } catch (err) {
+    alert('Failed to save: ' + err.message);
+    return;
+  }
+
+  await runAutoUpdate();
+  closeModal();
+  render();
+}
+
+async function deleteEditing() {
+  if (!editingId) return;
+  if (!confirm('Delete this application?')) return;
+  try {
+    await dbDelete(editingId);
+  } catch (err) {
+    alert('Failed to delete: ' + err.message);
+    return;
+  }
+  apps = apps.filter(a => a.id !== editingId);
+  closeModal();
+  render();
+}
+
+async function deleteApp(id) {
+  if (!confirm('Delete this application?')) return;
+  try {
+    await dbDelete(id);
+  } catch (err) {
+    alert('Failed to delete: ' + err.message);
+    return;
+  }
+  apps = apps.filter(a => a.id !== id);
+  render();
+}
+
+// ── CSV Export ────────────────────────────────────────────
+function exportCSV() {
+  if (!apps.length) { alert('No applications to export.'); return; }
+  const rows = [CSV_FIELDS.join(',')];
+  apps.forEach(a => {
+    rows.push(CSV_FIELDS.map(f => csvCell(a[f] || '')).join(','));
+  });
+  downloadFile(rows.join('\n'), 'job-tracker-export.csv', 'text/csv');
+}
+
+function csvCell(v) {
+  const s = String(v);
+  return (s.includes(',') || s.includes('"') || s.includes('\n'))
+    ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// ── CSV Import ────────────────────────────────────────────
+function openImport() {
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-overlay').classList.add('open');
+}
+function closeImport() { document.getElementById('import-overlay').classList.remove('open'); }
+function handleImportOverlayClick(e) {
+  if (e.target === document.getElementById('import-overlay')) closeImport();
+}
+
+function doImport() {
+  const file = document.getElementById('import-file').files[0];
+  if (!file) { alert('Please select a CSV file.'); return; }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const newApps = parseCSVtoNewApps(e.target.result);
+      if (newApps.length > 0) {
+        await dbUpsertMany(newApps);
+        apps.push(...newApps);
+      }
+      closeImport();
+      render();
+      alert(`Import complete. ${newApps.length} new application${newApps.length !== 1 ? 's' : ''} added.`);
+    } catch (err) {
+      alert('Failed to import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVtoNewApps(text) {
+  const lines  = text.trim().split(/\r?\n/);
+  if (lines.length < 2) throw new Error('File appears empty.');
+  const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase());
+
+  const col = f => headers.indexOf(f);
+  const get  = (row, f) => col(f) >= 0 ? row[col(f)] : '';
+
+  const existingIds = new Set(apps.map(a => a.id));
+  const newApps = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const row = parseCSVRow(lines[i]);
+    const company = get(row, 'company').trim();
+    const role    = get(row, 'role').trim();
+    if (!company && !role) continue;
+
+    const id = get(row, 'id') || Date.now().toString() + i;
+    if (existingIds.has(id)) continue;
+
+    const now = new Date().toISOString();
+    newApps.push({
+      id,
+      company,
+      role,
+      date:         get(row, 'date'),
+      status:       get(row, 'status') || 'applied',
+      salaryRange:  get(row, 'salaryrange') || get(row, 'salary_range') || get(row, 'salary'),
+      locationType: get(row, 'locationtype') || get(row, 'location_type') || get(row, 'location'),
+      city:         get(row, 'city'),
+      followUpDate: get(row, 'followupdate') || get(row, 'follow_up_date') || get(row, 'followup'),
+      source:       get(row, 'source'),
+      notes:        get(row, 'notes'),
+      createdAt:    get(row, 'createdat') || now,
+      lastUpdated:  get(row, 'lastupdated') || now,
+    });
+    existingIds.add(id);
+  }
+  return newApps;
+}
+
+function parseCSVRow(line) {
+  const cells = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') { inQ = false; }
+      else { cur += ch; }
+    } else {
+      if (ch === '"') { inQ = true; }
+      else if (ch === ',') { cells.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  return new Date(+y, +m-1, +day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function downloadFile(content, filename, mime) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── Subtitle ──────────────────────────────────────────────
+function updateSubtitle() {
+  const n = apps.length;
+  const active = apps.filter(a => !TERMINAL.has(a.status)).length;
+  document.getElementById('subtitle').textContent =
+    n === 0 ? 'Track your applications'
+    : `${n} application${n !== 1 ? 's' : ''} · ${active} active`;
+}
+
+// ── Render ────────────────────────────────────────────────
+function fullRender() {
+  updateSubtitle();
+  renderDashboard();
+  renderFilters();
+  renderTable();
+}
+
+function render() { fullRender(); }
+
+// ── Init ──────────────────────────────────────────────────
+(async function init() {
+  document.getElementById('main').innerHTML =
+    '<div class="empty"><p style="color:#667eea">Loading…</p></div>';
+
+  // One-time migration: push any existing localStorage data to Supabase
+  const local = JSON.parse(localStorage.getItem('job-tracker') || '[]');
+  if (local.length) {
+    try {
+      await dbUpsertMany(local);
+      localStorage.removeItem('job-tracker');
+    } catch (err) {
+      console.error('Migration error:', err);
+    }
+  }
+
+  // Load all records from Supabase
+  const { data, error } = await sb
+    .from('job_applications')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    document.getElementById('main').innerHTML =
+      `<div class="empty"><p>Failed to load data: ${esc(error.message)}</p></div>`;
+    return;
+  }
+
+  apps = (data || []).map(fromRow);
+  await runAutoUpdate();
+  fullRender();
+})();
+</script>
+</body>
+</html>
