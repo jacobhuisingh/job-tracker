@@ -315,6 +315,34 @@
     .contacts-empty   { font-size: 0.82rem; color: #a0aec0; padding: 0.75rem 0; }
     .contacts-loading { font-size: 0.82rem; color: #667eea; padding: 0.75rem 0; }
 
+    /* ── Company autocomplete dropdown ── */
+    .ac-wrap { position: relative; }
+    .ac-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% - 2px);
+      left: 0; right: 0;
+      background: white;
+      border: 2px solid #667eea;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      z-index: 400;
+      box-shadow: 0 6px 16px rgba(102,126,234,0.15);
+    }
+    .ac-dropdown.open { display: block; }
+    .ac-option {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #2d3748;
+      border-bottom: 1px solid #f0f0f5;
+    }
+    .ac-option:last-child { border-bottom: none; }
+    .ac-option:hover { background: #f0f4ff; }
+    .ac-option strong { color: #553c9a; font-weight: 700; }
+
     /* ── Contact modal ── */
     #contact-overlay { z-index: 200; }
     #contact-overlay .modal { max-width: 620px; max-height: 95vh; }
@@ -435,10 +463,10 @@
         <label>Their Title / Role</label>
         <input id="c-title" type="text" placeholder="e.g. Engineering Manager">
       </div>
-      <div class="field">
+      <div class="field ac-wrap">
         <label>Company</label>
-        <input id="c-company" type="text" list="company-suggestions" placeholder="e.g. Nike" autocomplete="nope">
-        <datalist id="company-suggestions"></datalist>
+        <input id="c-company" type="text" placeholder="e.g. Nike" autocomplete="off">
+        <div id="company-dropdown" class="ac-dropdown"></div>
       </div>
       <div class="field">
         <label>Email</label>
@@ -585,22 +613,54 @@ function staleDays(a) {
   return (Date.now() - new Date(a.date + 'T00:00:00').getTime()) / 86400000;
 }
 
-// ── Companies typeahead ───────────────────────────────────
+// ── Companies autocomplete ────────────────────────────────
 async function loadCompanies() {
   const { data, error } = await sb.from('job_applications').select('company');
-  if (error || !data) return;
-  allCompanies = [...new Set(data.map(r => r.company).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  populateCompanyDatalist();
+  if (error) { console.error('loadCompanies failed:', error.message); return; }
+  allCompanies = [...new Set((data || []).map(r => r.company).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+  console.log('Companies loaded:', allCompanies);
 }
 
-function populateCompanyDatalist() {
-  const dl = document.getElementById('company-suggestions');
-  dl.innerHTML = '';
-  allCompanies.forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name;
-    dl.appendChild(opt);
+function initCompanyAutocomplete() {
+  const input    = document.getElementById('c-company');
+  const dropdown = document.getElementById('company-dropdown');
+
+  function closeAC() {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '';
+  }
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim();
+    if (val.length < 3) { closeAC(); return; }
+    const q       = val.toLowerCase();
+    const matches = allCompanies.filter(c => c.toLowerCase().includes(q));
+    if (!matches.length) { closeAC(); return; }
+    dropdown.innerHTML = matches
+      .map(c => `<div class="ac-option" data-value="${esc(c)}">${acHighlight(c, val)}</div>`)
+      .join('');
+    dropdown.classList.add('open');
   });
+
+  // mousedown fires before blur — preventDefault keeps focus so we can set the value
+  dropdown.addEventListener('mousedown', e => {
+    const opt = e.target.closest('.ac-option');
+    if (!opt) return;
+    e.preventDefault();
+    input.value = opt.dataset.value;
+    closeAC();
+  });
+
+  input.addEventListener('blur', () => setTimeout(closeAC, 150));
+}
+
+function acHighlight(text, query) {
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx < 0) return esc(text);
+  return esc(text.slice(0, idx))
+    + '<strong>' + esc(text.slice(idx, idx + query.length)) + '</strong>'
+    + esc(text.slice(idx + query.length));
 }
 
 // ── Auto-update: Applied → No Response after AUTO_DAYS ────
@@ -831,10 +891,9 @@ async function saveApplication() {
     return;
   }
 
-  // Refresh typeahead with any new company
+  // Keep typeahead list current with any newly typed company
   if (!allCompanies.includes(company)) {
     allCompanies = [...allCompanies, company].sort((a, b) => a.localeCompare(b));
-    populateCompanyDatalist();
   }
 
   await runAutoUpdate();
@@ -1049,7 +1108,6 @@ async function saveContact() {
     // Add new company to typeahead if needed
     if (row.company && !allCompanies.includes(row.company)) {
       allCompanies = [...allCompanies, row.company].sort((a, b) => a.localeCompare(b));
-      populateCompanyDatalist();
     }
   }
 
@@ -1192,6 +1250,8 @@ function fullRender() {
 function render() { fullRender(); }
 
 // ── Init ──────────────────────────────────────────────────
+initCompanyAutocomplete();
+
 (async function init() {
   document.getElementById('main').innerHTML =
     '<div class="empty"><p style="color:#667eea">Loading…</p></div>';
