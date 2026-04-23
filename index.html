@@ -499,6 +499,51 @@
     .fu-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
 
     .hdr-btn.an-active { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.65); }
+
+    /* ── Analytics Drilldown ── */
+    .an-clickable { cursor: pointer; }
+    .an-topstat.an-clickable { transition: box-shadow 0.15s, transform 0.1s; }
+    .an-topstat.an-clickable:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); transform: translateY(-1px); }
+    .pipeline-row.an-clickable { border-radius: 8px; padding: 0 0.5rem; margin: 0 -0.5rem; transition: background 0.1s; }
+    .pipeline-row.an-clickable:hover { background: #f7f8fc; }
+    .source-row-el .an-clickable:hover { color: #553c9a; text-decoration: underline; }
+    .ring-stat.an-clickable { border-radius: 8px; padding: 0.2rem 0.4rem; transition: background 0.1s; }
+    .ring-stat.an-clickable:hover { background: #f0f4ff; }
+    .followup-group-hdr.an-clickable { display: inline-block; border-radius: 6px; padding: 0.1rem 0.3rem; transition: background 0.1s; }
+    .followup-group-hdr.an-clickable:hover { background: rgba(0,0,0,0.05); }
+
+    #drilldown-overlay { z-index: 150; }
+    .drilldown-modal {
+      background: white; border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      width: 100%; max-width: 580px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      margin: 1rem;
+      max-height: 82vh;
+      display: flex; flex-direction: column;
+    }
+    .drilldown-hdr { margin-bottom: 1rem; flex-shrink: 0; }
+    .drilldown-hdr h2 { font-size: 1.1rem; font-weight: 700; color: #2d3748; }
+    .drilldown-count { font-size: 0.8rem; color: #a0aec0; margin-top: 0.2rem; }
+    .drilldown-list { overflow-y: auto; flex: 1; min-height: 0; }
+    .drilldown-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.6rem 0.75rem; border-radius: 8px; cursor: pointer;
+      border: 1px solid #f0f0f5; margin-bottom: 0.3rem;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .drilldown-item:hover { background: #f0f4ff; border-color: #c7d2fe; }
+    .drilldown-left { display: flex; flex-direction: column; gap: 0.06rem; }
+    .drilldown-co { font-weight: 700; font-size: 0.88rem; color: #2d3748; }
+    .drilldown-role { font-size: 0.77rem; color: #718096; }
+    .drilldown-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .drilldown-date { font-size: 0.75rem; color: #a0aec0; white-space: nowrap; }
+    .drilldown-footer { flex-shrink: 0; padding-top: 0.85rem; display: flex; justify-content: flex-end; }
+    .drilldown-close {
+      padding: 0.45rem 1.2rem; border: 2px solid #e2e8f0; border-radius: 8px;
+      background: white; font-size: 0.85rem; cursor: pointer; color: #4a5568; font-family: inherit;
+    }
+    .drilldown-close:hover { border-color: #cbd5e0; }
   </style>
 </head>
 <body>
@@ -773,6 +818,20 @@
       <div id="an-followups"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── Drilldown Modal ── -->
+<div class="overlay" id="drilldown-overlay" onclick="handleDrilldownOverlayClick(event)">
+  <div class="drilldown-modal" onclick="event.stopPropagation()">
+    <div class="drilldown-hdr">
+      <h2 id="drilldown-title"></h2>
+      <div class="drilldown-count" id="drilldown-count"></div>
+    </div>
+    <div class="drilldown-list" id="drilldown-list"></div>
+    <div class="drilldown-footer">
+      <button class="drilldown-close" onclick="closeDrilldown()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1627,11 +1686,11 @@ function renderAnalytics() {
 
   // Top summary strip
   document.getElementById('an-topstats').innerHTML = [
-    { val: total,        label: 'Total Applications', color: '#667eea' },
-    { val: thisMonth,    label: 'This Month',          color: '#0ea5e9' },
-    { val: rate + '%',   label: 'Response Rate',       color: '#d69e2e' },
-    { val: offers,       label: 'Offers Received',     color: '#276749' },
-  ].map(s => `<div class="an-topstat" style="border-left-color:${s.color}">
+    { val: total,        label: 'Total Applications', color: '#667eea', fn: 'anDrillTotal()' },
+    { val: thisMonth,    label: 'This Month',          color: '#0ea5e9', fn: `anDrillThisMonth('${ym}')` },
+    { val: rate + '%',   label: 'Response Rate',       color: '#d69e2e', fn: 'anDrillResponded()' },
+    { val: offers,       label: 'Offers Received',     color: '#276749', fn: 'anDrillOffers()' },
+  ].map(s => `<div class="an-topstat an-clickable" style="border-left-color:${s.color}" onclick="${s.fn}">
     <div class="an-topstat-val" style="color:${s.color}">${s.val}</div>
     <div class="an-topstat-label">${s.label}</div>
   </div>`).join('');
@@ -1738,6 +1797,26 @@ function renderWeeklyChart() {
       ctx.fillText(`${i === 0 ? '8' : 8 - i}w ago`, bx + barW / 2, PAD_T + cH + 28);
     }
   });
+
+  // Canvas click → drilldown for that week's apps
+  canvas.style.cursor = 'pointer';
+  canvas.onclick = function(e) {
+    const scaleX = canvas.width / canvas.clientWidth;
+    const clickX = e.offsetX * scaleX;
+    const idx = Math.floor((clickX - PAD_L) / slotW);
+    if (idx < 0 || idx >= weeks.length || weeks[idx].count === 0) return;
+    const w = weeks[idx];
+    const weekApps = apps.filter(a => {
+      if (!a.date) return false;
+      const [y, m, d] = a.date.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt >= w.start && dt <= w.end;
+    });
+    const title = idx === weeks.length - 1
+      ? 'This Week'
+      : `Week of ${MON[w.start.getMonth()]} ${w.start.getDate()}`;
+    showDrilldown(title, weekApps);
+  };
 }
 
 function renderPipeline() {
@@ -1754,10 +1833,10 @@ function renderPipeline() {
     { label: 'Offer',        statuses: ['offer'],                                       color: '#48bb78' },
   ];
 
-  el.innerHTML = stages.map(s => {
+  el.innerHTML = stages.map((s, i) => {
     const count = s.statuses ? apps.filter(a => s.statuses.includes(a.status)).length : total;
     const pct   = Math.round(count / total * 100);
-    return `<div class="pipeline-row">
+    return `<div class="pipeline-row an-clickable" onclick="anDrillPipeline(${i})">
       <div class="pipeline-lbl">
         <span class="pipeline-stage">${s.label}</span>
         <span class="pipeline-meta"><strong>${count}</strong> of ${total} &nbsp;·&nbsp; ${pct}%</span>
@@ -1786,11 +1865,11 @@ function renderResponseRate() {
       </div>
     </div>
     <div class="ring-stats">
-      <div class="ring-stat">
+      <div class="ring-stat an-clickable" onclick="anDrillResponded()">
         <div class="ring-stat-n" style="color:#667eea">${responded}</div>
         <div class="ring-stat-l">Got a reply</div>
       </div>
-      <div class="ring-stat">
+      <div class="ring-stat an-clickable" onclick="anDrillNoReply()">
         <div class="ring-stat-n" style="color:#a0aec0">${total - responded}</div>
         <div class="ring-stat-l">No reply</div>
       </div>
@@ -1815,7 +1894,7 @@ function renderSources() {
   });
 
   const rows = Object.entries(map)
-    .map(([k, v]) => ({ label: SRC[k] || k, ...v, rate: Math.round(v.response / v.total * 100) }))
+    .map(([k, v]) => ({ key: k, label: SRC[k] || k, ...v, rate: Math.round(v.response / v.total * 100) }))
     .sort((a, b) => b.total - a.total);
 
   const pillCls = r => r >= 40 ? 'rate-good' : r >= 20 ? 'rate-ok' : 'rate-low';
@@ -1829,10 +1908,10 @@ function renderSources() {
       <span style="text-align:center">Response Rate</span>
     </div>
     ${rows.map(r => `<div class="source-row-el">
-      <span class="source-name">${esc(r.label)}</span>
-      <span class="source-num">${r.total}</span>
-      <span class="source-num">${r.response}</span>
-      <span class="source-num">${r.interview}</span>
+      <span class="source-name an-clickable" onclick="anDrillSource('${r.key}','total')">${esc(r.label)}</span>
+      <span class="source-num an-clickable" onclick="anDrillSource('${r.key}','total')">${r.total}</span>
+      <span class="source-num an-clickable" onclick="anDrillSource('${r.key}','response')">${r.response}</span>
+      <span class="source-num an-clickable" onclick="anDrillSource('${r.key}','interview')">${r.interview}</span>
       <span style="text-align:center"><span class="rate-pill ${pillCls(r.rate)}">${r.rate}%</span></span>
     </div>`).join('')}
   </div>`;
@@ -1862,11 +1941,11 @@ function renderFollowUps() {
 
   let html = '';
   if (overdue.length) {
-    html += `<div class="followup-group-hdr is-overdue">⚠ Overdue · ${overdue.length}</div>`;
+    html += `<div class="followup-group-hdr is-overdue an-clickable" onclick="anDrillFollowups('overdue')">⚠ Overdue · ${overdue.length}</div>`;
     html += overdue.map(a => fuRow(a, 'is-overdue')).join('');
   }
   if (thisWeek.length) {
-    html += `<div class="followup-group-hdr is-week">📅 Due This Week · ${thisWeek.length}</div>`;
+    html += `<div class="followup-group-hdr is-week an-clickable" onclick="anDrillFollowups('week')">📅 Due This Week · ${thisWeek.length}</div>`;
     html += thisWeek.map(a => fuRow(a, 'is-week')).join('');
   }
   el.innerHTML = html;
@@ -1883,6 +1962,77 @@ function fuRow(a, dateCls) {
       <span class="fu-date ${dateCls}">${formatDate(a.followUpDate)}</span>
     </div>
   </div>`;
+}
+
+// ── Analytics Drilldown ──────────────────────────────────
+const AN_PIPELINE_STAGES = [
+  { label: 'Applied',      statuses: null },
+  { label: 'Phone Screen', statuses: ['phone-screen','interview','final-round','offer'] },
+  { label: 'Interview',    statuses: ['interview','final-round','offer'] },
+  { label: 'Final Round',  statuses: ['final-round','offer'] },
+  { label: 'Offer',        statuses: ['offer'] },
+];
+
+function showDrilldown(title, appList) {
+  document.getElementById('drilldown-title').textContent = title;
+  const n = appList.length;
+  document.getElementById('drilldown-count').textContent = `${n} application${n !== 1 ? 's' : ''}`;
+  const sorted = [...appList].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  document.getElementById('drilldown-list').innerHTML = sorted.length
+    ? sorted.map(a => `<div class="drilldown-item" onclick="openFromDrilldown('${a.id}')">
+        <div class="drilldown-left">
+          <span class="drilldown-co">${esc(a.company)}</span>
+          <span class="drilldown-role">${esc(a.role)}</span>
+        </div>
+        <div class="drilldown-right">
+          <span class="badge badge-${a.status}" style="font-size:0.68rem;padding:0.18rem 0.55rem">${STATUS_MAP[a.status] || a.status}</span>
+          <span class="drilldown-date">${a.date ? formatDate(a.date) : '—'}</span>
+        </div>
+      </div>`).join('')
+    : '<p style="text-align:center;color:#a0aec0;padding:1.5rem 0">No applications in this group.</p>';
+  document.getElementById('drilldown-overlay').classList.add('open');
+}
+function closeDrilldown() { document.getElementById('drilldown-overlay').classList.remove('open'); }
+function handleDrilldownOverlayClick(e) { if (e.target === document.getElementById('drilldown-overlay')) closeDrilldown(); }
+function openFromDrilldown(id) { closeDrilldown(); openModal(id); }
+
+function anDrillTotal()        { showDrilldown('All Applications', apps); }
+function anDrillThisMonth(ym)  { showDrilldown('This Month', apps.filter(a => a.date && a.date.startsWith(ym))); }
+function anDrillResponded()    { showDrilldown('Got a Reply', apps.filter(a => !['applied','no-response'].includes(a.status))); }
+function anDrillOffers()       { showDrilldown('Offers Received', apps.filter(a => a.status === 'offer')); }
+function anDrillNoReply()      { showDrilldown('No Reply', apps.filter(a => ['applied','no-response'].includes(a.status))); }
+function anDrillPipeline(idx) {
+  const s    = AN_PIPELINE_STAGES[idx];
+  const list = s.statuses ? apps.filter(a => s.statuses.includes(a.status)) : apps;
+  showDrilldown(s.label, list);
+}
+function anDrillSource(sourceKey, col) {
+  const SRC_LABELS = { linkedin:'LinkedIn', indeed:'Indeed', referral:'Referral', 'company-website':'Company Site', other:'Other', '':'Unknown' };
+  const label = sourceKey in SRC_LABELS ? SRC_LABELS[sourceKey] : sourceKey;
+  let list;
+  if (col === 'response') {
+    list = apps.filter(a => (a.source || '') === sourceKey && !['applied','no-response'].includes(a.status));
+  } else if (col === 'interview') {
+    list = apps.filter(a => (a.source || '') === sourceKey && ['interview','final-round','offer'].includes(a.status));
+  } else {
+    list = apps.filter(a => (a.source || '') === sourceKey);
+  }
+  const colLabel = col === 'response' ? ' · Responses' : col === 'interview' ? ' · Interviews' : '';
+  showDrilldown(`${label}${colLabel}`, list);
+}
+function anDrillFollowups(group) {
+  const today   = todayStr();
+  const weekEnd = addDays(today, 7);
+  const active  = apps.filter(a => !TERMINAL.has(a.status));
+  if (group === 'overdue') {
+    const list = active.filter(a => a.followUpDate && a.followUpDate < today)
+                       .sort((a, b) => a.followUpDate.localeCompare(b.followUpDate));
+    showDrilldown('Overdue Follow-ups', list);
+  } else {
+    const list = active.filter(a => a.followUpDate && a.followUpDate >= today && a.followUpDate <= weekEnd)
+                       .sort((a, b) => a.followUpDate.localeCompare(b.followUpDate));
+    showDrilldown('Due This Week', list);
+  }
 }
 
 // ── Bootstrap ─────────────────────────────────────────────
