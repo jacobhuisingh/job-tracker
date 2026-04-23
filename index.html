@@ -394,6 +394,111 @@
     /* ── Tooltip ── */
     [title] { cursor: help; }
     tr[title] { cursor: pointer; }
+
+    /* ── Analytics Panel ── */
+    .an-section-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 1.1rem 2rem 0.75rem;
+    }
+    .analytics-title { font-size: 1.25rem; font-weight: 700; color: #2d3748; }
+    .analytics-sub-text { font-size: 0.8rem; color: #a0aec0; margin-top: 0.15rem; }
+
+    .an-topstats {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0.75rem; padding: 0 2rem 1rem;
+    }
+    .an-topstat {
+      background: white; border-radius: 10px; padding: 0.85rem 1rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06); border-left: 3px solid #667eea;
+    }
+    .an-topstat-val { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .an-topstat-label { font-size: 0.7rem; color: #a0aec0; margin-top: 0.25rem;
+      text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+
+    .an-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 1rem; padding: 0 2rem 3rem;
+    }
+    .an-card {
+      background: white; border-radius: 12px; padding: 1.2rem 1.4rem;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+    }
+    .an-card.an-span2 { grid-column: span 2; }
+    .an-card.an-span3 { grid-column: span 3; }
+    .an-card-header { margin-bottom: 1rem; }
+    .an-title { font-size: 0.9rem; font-weight: 700; color: #2d3748; }
+    .an-card-sub { font-size: 0.74rem; color: #a0aec0; display: block; margin-top: 0.12rem; }
+    .an-empty { font-size: 0.85rem; color: #a0aec0; padding: 1.25rem 0; text-align: center; }
+
+    #an-weekly-canvas { display: block; width: 100%; }
+
+    .pipeline-row { margin-bottom: 1rem; }
+    .pipeline-row:last-child { margin-bottom: 0; }
+    .pipeline-lbl { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.38rem; }
+    .pipeline-stage { font-size: 0.83rem; font-weight: 600; color: #2d3748; }
+    .pipeline-meta { font-size: 0.78rem; color: #a0aec0; }
+    .pipeline-meta strong { color: #4a5568; }
+    .pipeline-track { height: 10px; background: #f0f4ff; border-radius: 10px; overflow: hidden; }
+    .pipeline-fill { height: 100%; border-radius: 10px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+    .ring-area { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.75rem 0 0.25rem; }
+    .ring-wrap {
+      width: 130px; height: 130px; border-radius: 50%;
+      background: conic-gradient(#667eea var(--pct,0%), #e2e8f0 var(--pct,0%));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ring-inner {
+      width: 94px; height: 94px; border-radius: 50%; background: white;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .ring-pct { font-size: 1.45rem; font-weight: 800; color: #2d3748; line-height: 1; }
+    .ring-sub { font-size: 0.62rem; color: #a0aec0; text-align: center; margin-top: 0.12rem; }
+    .ring-stats { display: flex; gap: 1.75rem; }
+    .ring-stat { text-align: center; }
+    .ring-stat-n { font-size: 1.15rem; font-weight: 800; }
+    .ring-stat-l { font-size: 0.67rem; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin-top: 0.1rem; }
+
+    .source-table { width: 100%; }
+    .source-hdr, .source-row-el {
+      display: grid;
+      grid-template-columns: 1.5fr 0.6fr 0.6fr 0.6fr 0.85fr;
+      gap: 0.5rem; padding: 0.42rem 0.6rem;
+      align-items: center;
+    }
+    .source-hdr { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #a0aec0; font-weight: 700; margin-bottom: 0.15rem; }
+    .source-row-el { font-size: 0.83rem; border-bottom: 1px solid #f0f0f5; border-radius: 6px; }
+    .source-row-el:last-child { border-bottom: none; }
+    .source-row-el:hover { background: #fafbff; }
+    .source-name { font-weight: 600; color: #2d3748; }
+    .source-num  { text-align: center; color: #4a5568; }
+    .rate-pill { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .rate-good { background: #c6f6d5; color: #22543d; }
+    .rate-ok   { background: #fefcbf; color: #975a16; }
+    .rate-low  { background: #fed7d7; color: #9b2c2c; }
+
+    .followup-group-hdr {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+      padding: 0.55rem 0 0.3rem; margin-top: 0.2rem;
+    }
+    .followup-group-hdr.is-overdue { color: #c53030; }
+    .followup-group-hdr.is-week { color: #c05621; }
+    .followup-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.52rem 0.75rem; border-radius: 8px; cursor: pointer;
+      transition: background 0.1s; border: 1px solid #f0f0f5; margin-bottom: 0.35rem;
+    }
+    .followup-item:hover { background: #f7f8fc; border-color: #e2e8f0; }
+    .fu-info { display: flex; flex-direction: column; gap: 0.08rem; }
+    .fu-company { font-weight: 700; font-size: 0.85rem; color: #2d3748; }
+    .fu-role { font-size: 0.77rem; color: #718096; }
+    .fu-right { display: flex; align-items: center; gap: 0.5rem; }
+    .fu-date { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 20px; white-space: nowrap; }
+    .fu-date.is-overdue { background: #fed7d7; color: #c53030; }
+    .fu-date.is-week { background: #fef9c3; color: #854d0e; }
+    .fu-empty { text-align: center; padding: 1.75rem 1rem; color: #a0aec0; }
+    .fu-empty-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    .hdr-btn.an-active { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.65); }
   </style>
 </head>
 <body>
@@ -444,6 +549,7 @@
   <div class="header-actions">
     <button class="hdr-btn" onclick="openImport()">Import CSV</button>
     <button class="hdr-btn" onclick="exportCSV()">Export CSV</button>
+    <button class="hdr-btn" id="analytics-btn" onclick="toggleAnalytics()">📊 Analytics</button>
     <button class="hdr-btn primary" onclick="openModal()">+ Add Application</button>
     <button class="hdr-btn" onclick="logout()">Sign Out</button>
   </div>
@@ -605,6 +711,68 @@
         <button class="btn-save" onclick="doImport()">Import</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ── Analytics Panel ── -->
+<div id="analytics-panel" style="display:none">
+  <div class="an-section-header">
+    <div>
+      <h2 class="analytics-title">Analytics</h2>
+      <p class="analytics-sub-text" id="an-sub-text"></p>
+    </div>
+    <button class="hdr-btn" id="an-refresh-btn" onclick="refreshAnalytics()">↻ Refresh</button>
+  </div>
+
+  <div class="an-topstats" id="an-topstats"></div>
+
+  <div class="an-grid">
+
+    <!-- Weekly Activity -->
+    <div class="an-card an-span3">
+      <div class="an-card-header">
+        <h3 class="an-title">Weekly Applications</h3>
+        <span class="an-card-sub">Applications sent per week — last 8 weeks</span>
+      </div>
+      <canvas id="an-weekly-canvas" height="180"></canvas>
+    </div>
+
+    <!-- Pipeline Conversion -->
+    <div class="an-card an-span2">
+      <div class="an-card-header">
+        <h3 class="an-title">Pipeline Conversion</h3>
+        <span class="an-card-sub">% of applications that reached each stage</span>
+      </div>
+      <div id="an-pipeline"></div>
+    </div>
+
+    <!-- Response Rate -->
+    <div class="an-card">
+      <div class="an-card-header">
+        <h3 class="an-title">Response Rate</h3>
+        <span class="an-card-sub">Applications that got any reply</span>
+      </div>
+      <div id="an-response-rate"></div>
+    </div>
+
+    <!-- Source Effectiveness -->
+    <div class="an-card an-span3">
+      <div class="an-card-header">
+        <h3 class="an-title">Source Effectiveness</h3>
+        <span class="an-card-sub">Response and interview rates by where you found the job</span>
+      </div>
+      <div id="an-sources"></div>
+    </div>
+
+    <!-- Follow-up Dashboard -->
+    <div class="an-card an-span3">
+      <div class="an-card-header">
+        <h3 class="an-title">Follow-up Dashboard</h3>
+        <span class="an-card-sub">Active applications overdue or due for follow-up this week — click any row to open</span>
+      </div>
+      <div id="an-followups"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1391,7 +1559,10 @@ function updateSubtitle() {
     n === 0 ? 'Track your applications'
     : `${n} application${n !== 1 ? 's' : ''} · ${active} active`;
 }
-function fullRender() { updateSubtitle(); renderDashboard(); renderFilters(); renderTable(); }
+function fullRender() {
+  updateSubtitle(); renderDashboard(); renderFilters(); renderTable();
+  if (analyticsVisible) renderAnalytics();
+}
 function render() { fullRender(); }
 
 // ── App data loader (called after auth) ───────────────────
@@ -1420,6 +1591,298 @@ async function loadAppData() {
   apps = (appsResult.data || []).map(fromRow);
   await runAutoUpdate();
   fullRender();
+}
+
+// ── Analytics ─────────────────────────────────────────────
+let analyticsVisible = false;
+
+function toggleAnalytics() {
+  analyticsVisible = !analyticsVisible;
+  const show = analyticsVisible;
+  document.getElementById('dashboard').style.display        = show ? 'none' : '';
+  document.getElementById('filters').style.display          = show ? 'none' : '';
+  document.getElementById('main').style.display             = show ? 'none' : '';
+  document.getElementById('analytics-panel').style.display  = show ? '' : 'none';
+  document.getElementById('analytics-btn').classList.toggle('an-active', show);
+  if (show) renderAnalytics();
+}
+
+async function refreshAnalytics() {
+  const btn = document.getElementById('an-refresh-btn');
+  btn.textContent = '↻ Refreshing…';
+  btn.disabled = true;
+  await loadAppData();          // fullRender() inside re-renders analytics if visible
+  btn.textContent = '↻ Refresh';
+  btn.disabled = false;
+}
+
+function renderAnalytics() {
+  const total     = apps.length;
+  const now       = new Date();
+  const ym        = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const thisMonth = apps.filter(a => a.date && a.date.startsWith(ym)).length;
+  const responded = apps.filter(a => !['applied','no-response'].includes(a.status)).length;
+  const offers    = apps.filter(a => a.status === 'offer').length;
+  const rate      = total ? Math.round(responded / total * 100) : 0;
+
+  // Top summary strip
+  document.getElementById('an-topstats').innerHTML = [
+    { val: total,        label: 'Total Applications', color: '#667eea' },
+    { val: thisMonth,    label: 'This Month',          color: '#0ea5e9' },
+    { val: rate + '%',   label: 'Response Rate',       color: '#d69e2e' },
+    { val: offers,       label: 'Offers Received',     color: '#276749' },
+  ].map(s => `<div class="an-topstat" style="border-left-color:${s.color}">
+    <div class="an-topstat-val" style="color:${s.color}">${s.val}</div>
+    <div class="an-topstat-label">${s.label}</div>
+  </div>`).join('');
+
+  const sub = document.getElementById('an-sub-text');
+  if (sub) sub.textContent = `${total} application${total !== 1 ? 's' : ''} · data from Supabase`;
+
+  renderWeeklyChart();
+  renderPipeline();
+  renderResponseRate();
+  renderSources();
+  renderFollowUps();
+}
+
+function renderWeeklyChart() {
+  const canvas = document.getElementById('an-weekly-canvas');
+  if (!canvas) return;
+
+  // 8 Sunday-anchored weeks, most recent on right
+  const today = new Date();
+  const thisSun = new Date(today);
+  thisSun.setDate(today.getDate() - today.getDay());
+  thisSun.setHours(0, 0, 0, 0);
+
+  const weeks = [];
+  for (let i = 7; i >= 0; i--) {
+    const start = new Date(thisSun);
+    start.setDate(thisSun.getDate() - i * 7);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    weeks.push({ start, end, count: 0 });
+  }
+
+  apps.forEach(a => {
+    if (!a.date) return;
+    const [y, m, d] = a.date.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    for (const w of weeks) {
+      if (dt >= w.start && dt <= w.end) { w.count++; break; }
+    }
+  });
+
+  // Draw on canvas at fixed 800×180 internal resolution; CSS scales it
+  const W = 800, H = 180;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const PAD_L = 30, PAD_R = 16, PAD_T = 28, PAD_B = 52;
+  const cW = W - PAD_L - PAD_R, cH = H - PAD_T - PAD_B;
+  const maxVal = Math.max(...weeks.map(w => w.count), 1);
+  const slotW  = cW / weeks.length;
+  const barW   = slotW * 0.52;
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  for (let g = 0; g <= 4; g++) {
+    const gy = PAD_T + cH - cH * g / 4;
+    ctx.strokeStyle = g === 0 ? '#e2e8f0' : '#f0f4ff';
+    ctx.lineWidth = 1;
+    ctx.setLineDash(g === 0 ? [] : [4, 4]);
+    ctx.beginPath(); ctx.moveTo(PAD_L, gy); ctx.lineTo(PAD_L + cW, gy); ctx.stroke();
+    ctx.setLineDash([]);
+    if (g > 0) {
+      ctx.font = '10px Segoe UI'; ctx.fillStyle = '#a0aec0';
+      ctx.textAlign = 'right';
+      ctx.fillText(Math.round(maxVal * g / 4), PAD_L - 5, gy + 3);
+    }
+  }
+
+  // Bars
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  weeks.forEach((w, i) => {
+    const bx  = PAD_L + i * slotW + (slotW - barW) / 2;
+    const bh  = w.count === 0 ? 0 : Math.max(4, cH * w.count / maxVal);
+    const by  = PAD_T + cH - bh;
+    const cur = i === weeks.length - 1;
+
+    if (bh > 0) {
+      const grad = ctx.createLinearGradient(0, by, 0, by + bh);
+      grad.addColorStop(0, cur ? '#667eea' : '#a5b4fc');
+      grad.addColorStop(1, cur ? '#764ba2' : '#c4b5fd');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, barW, bh, [3, 3, 0, 0]);
+      ctx.fill();
+
+      ctx.font = (cur ? 'bold ' : '') + '11px Segoe UI';
+      ctx.fillStyle = cur ? '#553c9a' : '#667eea';
+      ctx.textAlign = 'center';
+      ctx.fillText(w.count, bx + barW / 2, by - 5);
+    }
+
+    // X-axis label
+    const lbl = cur ? 'This week' : `${MON[w.start.getMonth()]} ${w.start.getDate()}`;
+    ctx.font = (cur ? 'bold ' : '') + '10px Segoe UI';
+    ctx.fillStyle = cur ? '#553c9a' : '#718096';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, bx + barW / 2, PAD_T + cH + 16);
+    if (!cur) {
+      ctx.font = '9px Segoe UI'; ctx.fillStyle = '#cbd5e0';
+      ctx.fillText(`${i === 0 ? '8' : 8 - i}w ago`, bx + barW / 2, PAD_T + cH + 28);
+    }
+  });
+}
+
+function renderPipeline() {
+  const el = document.getElementById('an-pipeline');
+  if (!el) return;
+  const total = apps.length;
+  if (!total) { el.innerHTML = '<p class="an-empty">No applications yet.</p>'; return; }
+
+  const stages = [
+    { label: 'Applied',      statuses: null,                                           color: '#667eea' },
+    { label: 'Phone Screen', statuses: ['phone-screen','interview','final-round','offer'], color: '#0ea5e9' },
+    { label: 'Interview',    statuses: ['interview','final-round','offer'],              color: '#ecc94b' },
+    { label: 'Final Round',  statuses: ['final-round','offer'],                         color: '#ed8936' },
+    { label: 'Offer',        statuses: ['offer'],                                       color: '#48bb78' },
+  ];
+
+  el.innerHTML = stages.map(s => {
+    const count = s.statuses ? apps.filter(a => s.statuses.includes(a.status)).length : total;
+    const pct   = Math.round(count / total * 100);
+    return `<div class="pipeline-row">
+      <div class="pipeline-lbl">
+        <span class="pipeline-stage">${s.label}</span>
+        <span class="pipeline-meta"><strong>${count}</strong> of ${total} &nbsp;·&nbsp; ${pct}%</span>
+      </div>
+      <div class="pipeline-track">
+        <div class="pipeline-fill" style="width:${pct}%;background:${s.color}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderResponseRate() {
+  const el = document.getElementById('an-response-rate');
+  if (!el) return;
+  const total = apps.length;
+  if (!total) { el.innerHTML = '<p class="an-empty">No data yet.</p>'; return; }
+
+  const responded = apps.filter(a => !['applied','no-response'].includes(a.status)).length;
+  const pct = Math.round(responded / total * 100);
+
+  el.innerHTML = `<div class="ring-area">
+    <div class="ring-wrap" style="--pct:${pct}%">
+      <div class="ring-inner">
+        <div class="ring-pct">${pct}%</div>
+        <div class="ring-sub">response<br>rate</div>
+      </div>
+    </div>
+    <div class="ring-stats">
+      <div class="ring-stat">
+        <div class="ring-stat-n" style="color:#667eea">${responded}</div>
+        <div class="ring-stat-l">Got a reply</div>
+      </div>
+      <div class="ring-stat">
+        <div class="ring-stat-n" style="color:#a0aec0">${total - responded}</div>
+        <div class="ring-stat-l">No reply</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSources() {
+  const el = document.getElementById('an-sources');
+  if (!el) return;
+  const total = apps.length;
+  if (!total) { el.innerHTML = '<p class="an-empty">No data yet.</p>'; return; }
+
+  const SRC = { linkedin:'LinkedIn', indeed:'Indeed', referral:'Referral', 'company-website':'Company Site', other:'Other', '':'Unknown' };
+  const map = {};
+  apps.forEach(a => {
+    const k = a.source || '';
+    if (!map[k]) map[k] = { total:0, response:0, interview:0 };
+    map[k].total++;
+    if (!['applied','no-response'].includes(a.status)) map[k].response++;
+    if (['interview','final-round','offer'].includes(a.status))   map[k].interview++;
+  });
+
+  const rows = Object.entries(map)
+    .map(([k, v]) => ({ label: SRC[k] || k, ...v, rate: Math.round(v.response / v.total * 100) }))
+    .sort((a, b) => b.total - a.total);
+
+  const pillCls = r => r >= 40 ? 'rate-good' : r >= 20 ? 'rate-ok' : 'rate-low';
+
+  el.innerHTML = `<div class="source-table">
+    <div class="source-hdr">
+      <span>Source</span>
+      <span style="text-align:center">Applied</span>
+      <span style="text-align:center">Responses</span>
+      <span style="text-align:center">Interviews</span>
+      <span style="text-align:center">Response Rate</span>
+    </div>
+    ${rows.map(r => `<div class="source-row-el">
+      <span class="source-name">${esc(r.label)}</span>
+      <span class="source-num">${r.total}</span>
+      <span class="source-num">${r.response}</span>
+      <span class="source-num">${r.interview}</span>
+      <span style="text-align:center"><span class="rate-pill ${pillCls(r.rate)}">${r.rate}%</span></span>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderFollowUps() {
+  const el = document.getElementById('an-followups');
+  if (!el) return;
+
+  const today   = todayStr();
+  const weekEnd = addDays(today, 7);
+  const active  = apps.filter(a => !TERMINAL.has(a.status));
+
+  const overdue  = active.filter(a => a.followUpDate && a.followUpDate < today)
+                         .sort((a, b) => a.followUpDate.localeCompare(b.followUpDate));
+  const thisWeek = active.filter(a => a.followUpDate && a.followUpDate >= today && a.followUpDate <= weekEnd)
+                         .sort((a, b) => a.followUpDate.localeCompare(b.followUpDate));
+
+  if (!overdue.length && !thisWeek.length) {
+    el.innerHTML = `<div class="fu-empty">
+      <div class="fu-empty-icon">✅</div>
+      <div>No follow-ups overdue or due this week.</div>
+      <div style="font-size:0.77rem;color:#cbd5e0;margin-top:0.35rem">${active.length} active application${active.length !== 1 ? 's' : ''} being tracked</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if (overdue.length) {
+    html += `<div class="followup-group-hdr is-overdue">⚠ Overdue · ${overdue.length}</div>`;
+    html += overdue.map(a => fuRow(a, 'is-overdue')).join('');
+  }
+  if (thisWeek.length) {
+    html += `<div class="followup-group-hdr is-week">📅 Due This Week · ${thisWeek.length}</div>`;
+    html += thisWeek.map(a => fuRow(a, 'is-week')).join('');
+  }
+  el.innerHTML = html;
+}
+
+function fuRow(a, dateCls) {
+  return `<div class="followup-item" onclick="openModal('${a.id}')">
+    <div class="fu-info">
+      <span class="fu-company">${esc(a.company)}</span>
+      <span class="fu-role">${esc(a.role)}</span>
+    </div>
+    <div class="fu-right">
+      <span class="badge badge-${a.status}" style="font-size:0.68rem;padding:0.18rem 0.55rem">${STATUS_MAP[a.status] || a.status}</span>
+      <span class="fu-date ${dateCls}">${formatDate(a.followUpDate)}</span>
+    </div>
+  </div>`;
 }
 
 // ── Bootstrap ─────────────────────────────────────────────
