@@ -214,7 +214,8 @@
       color: white; font-size: 0.88rem; font-weight: 700;
       cursor: pointer; font-family: inherit; transition: opacity 0.2s;
     }
-    .btn-save:hover { opacity: 0.88; }
+    .btn-save:hover  { opacity: 0.88; }
+    .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
     .btn-deactivate {
       padding: 0.55rem 1rem;
       border: 2px solid #fbd38d; border-radius: 8px;
@@ -234,7 +235,7 @@
     .import-note { font-size: 0.8rem; color: #718096; margin-bottom: 0.75rem; line-height: 1.5; }
     .import-note code { background: #f0f4ff; padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.78rem; color: #553c9a; }
 
-    /* ── Contacts section (inside app modal) ── */
+    /* ── Contacts section ── */
     .contacts-section {
       margin-top: 1.5rem;
       border-top: 2px solid #f0f4ff;
@@ -247,11 +248,8 @@
       margin-bottom: 0.75rem;
     }
     .contacts-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #4a5568;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      font-size: 0.78rem; font-weight: 700; color: #4a5568;
+      text-transform: uppercase; letter-spacing: 0.03em;
     }
     .btn-add-contact {
       padding: 0.28rem 0.72rem;
@@ -262,18 +260,12 @@
     }
     .btn-add-contact:hover { background: #667eea; color: white; }
     .contact-list { display: flex; flex-direction: column; gap: 0.4rem; }
-
-    /* ── Contact cards ── */
     .contact-card {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
+      display: flex; align-items: center; gap: 0.7rem;
       padding: 0.55rem 0.8rem;
-      background: #f7f8fc;
-      border-radius: 9px;
+      background: #f7f8fc; border-radius: 9px;
       border: 1.5px solid #e2e8f0;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
     }
     .contact-card:hover { border-color: #667eea; background: #f0f4ff; }
     .contact-avatar {
@@ -295,8 +287,6 @@
     .rel-referral   { background: #faf5ff; color: #553c9a; }
     .rel-networking { background: #fffaf0; color: #c05621; }
     .rel-other      { background: #f7fafc; color: #718096; }
-
-    /* Inactive contacts */
     .contact-card.inactive { opacity: 0.5; }
     .contact-card.inactive:hover { opacity: 0.75; border-color: #cbd5e0; background: #f7f8fc; }
     .contact-avatar.inactive { background: #cbd5e0; }
@@ -311,32 +301,25 @@
     .inactive-divider::before, .inactive-divider::after {
       content: ''; flex: 1; height: 1px; background: #e2e8f0;
     }
-
     .contacts-empty   { font-size: 0.82rem; color: #a0aec0; padding: 0.75rem 0; }
     .contacts-loading { font-size: 0.82rem; color: #667eea; padding: 0.75rem 0; }
 
     /* ── Company autocomplete dropdown ── */
     .ac-wrap { position: relative; }
     .ac-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% - 2px);
-      left: 0; right: 0;
+      display: none; position: absolute;
+      top: calc(100% - 2px); left: 0; right: 0;
       background: white;
-      border: 2px solid #667eea;
-      border-top: none;
+      border: 2px solid #667eea; border-top: none;
       border-radius: 0 0 8px 8px;
-      max-height: 160px;
-      overflow-y: auto;
+      max-height: 160px; overflow-y: auto;
       z-index: 400;
       box-shadow: 0 6px 16px rgba(102,126,234,0.15);
     }
     .ac-dropdown.open { display: block; }
     .ac-option {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      color: #2d3748;
+      padding: 0.5rem 0.75rem; font-size: 0.9rem;
+      cursor: pointer; color: #2d3748;
       border-bottom: 1px solid #f0f0f5;
     }
     .ac-option:last-child { border-bottom: none; }
@@ -347,12 +330,111 @@
     #contact-overlay { z-index: 200; }
     #contact-overlay .modal { max-width: 620px; max-height: 95vh; }
 
+    /* ── Auth screen ── */
+    #auth-screen {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .auth-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .auth-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem 2.25rem 1.75rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    }
+    .auth-card h2 {
+      font-size: 1.2rem; font-weight: 700;
+      color: #2d3748; margin-bottom: 1.4rem;
+    }
+    .auth-alert {
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.83rem;
+      margin-bottom: 1rem;
+      line-height: 1.45;
+    }
+    .auth-alert.error   { background: #fff5f5; border: 1px solid #fed7d7; color: #c53030; }
+    .auth-alert.success { background: #f0fff4; border: 1px solid #c6f6d5; color: #276749; }
+    .auth-fields { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.1rem; }
+    .auth-fields .field label { font-size: 0.78rem; }
+    .auth-submit {
+      width: 100%; padding: 0.65rem;
+      border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white; font-size: 0.92rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: opacity 0.2s; margin-bottom: 1.1rem;
+    }
+    .auth-submit:hover    { opacity: 0.88; }
+    .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+    .auth-toggle {
+      text-align: center;
+      font-size: 0.83rem;
+      color: #718096;
+      padding-top: 0.75rem;
+      border-top: 1px solid #f0f0f5;
+    }
+    .auth-toggle-btn {
+      background: none; border: none;
+      color: #667eea; font-weight: 600;
+      cursor: pointer; font-size: 0.83rem;
+      margin-left: 0.3rem; font-family: inherit;
+    }
+    .auth-toggle-btn:hover { text-decoration: underline; }
+
     /* ── Tooltip ── */
     [title] { cursor: help; }
     tr[title] { cursor: pointer; }
   </style>
 </head>
 <body>
+
+<!-- ── Auth Screen ── -->
+<div id="auth-screen">
+  <header>
+    <div>
+      <h1>Job Tracker</h1>
+      <p>Sign in to continue</p>
+    </div>
+  </header>
+  <div class="auth-body">
+    <div class="auth-card">
+      <h2 id="auth-title">Sign In</h2>
+
+      <div id="auth-alert" class="auth-alert" style="display:none"></div>
+
+      <div class="auth-fields">
+        <div class="field">
+          <label>Email</label>
+          <input id="auth-email" type="email" placeholder="you@example.com" onkeydown="authKeydown(event)">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="auth-password" type="password" placeholder="••••••••" onkeydown="authKeydown(event)">
+        </div>
+      </div>
+
+      <button class="auth-submit" id="auth-submit-btn" onclick="authSubmit()">Sign In</button>
+
+      <div class="auth-toggle">
+        <span id="auth-toggle-label">Don't have an account?</span>
+        <button class="auth-toggle-btn" id="auth-toggle-btn" onclick="toggleAuthMode()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── App (hidden until authenticated) ── -->
+<div id="app" style="display:none">
 
 <header>
   <div>
@@ -363,6 +445,7 @@
     <button class="hdr-btn" onclick="openImport()">Import CSV</button>
     <button class="hdr-btn" onclick="exportCSV()">Export CSV</button>
     <button class="hdr-btn primary" onclick="openModal()">+ Add Application</button>
+    <button class="hdr-btn" onclick="logout()">Sign Out</button>
   </div>
 </header>
 
@@ -430,7 +513,6 @@
       </div>
     </div>
 
-    <!-- Contacts — visible only when editing an existing application -->
     <div class="contacts-section" id="contacts-section" style="display:none">
       <div class="contacts-header">
         <span class="contacts-title">Contacts</span>
@@ -490,7 +572,7 @@
       </div>
       <div class="field full">
         <label>Notes</label>
-        <textarea id="c-notes" placeholder="e.g. Met at React Conf, reached out on LinkedIn, prefers email…"></textarea>
+        <textarea id="c-notes" placeholder="e.g. Met at React Conf, reached out on LinkedIn…"></textarea>
       </div>
     </div>
     <div class="modal-actions">
@@ -526,17 +608,20 @@
   </div>
 </div>
 
+</div><!-- end #app -->
+
 <script>
 // ── Supabase ──────────────────────────────────────────────
 const sb = supabase.createClient(
-  'https://puidoehyimlndayjfvot.supabase.co',
-  'sb_publishable_SjzxBWHr0RpXZmDwWOjfHw_0WcsgmY8'
+  '%%SUPABASE_URL%%',
+  '%%SUPABASE_ANON_KEY%%'
 );
 
 // ── Application row mapping ───────────────────────────────
 function toRow(a) {
   return {
     id:             a.id,
+    user_id:        currentUserId,
     company:        a.company,
     role:           a.role,
     date:           a.date         || null,
@@ -605,13 +690,83 @@ const AUTO_DAYS = 21;
 const CSV_FIELDS = ['id','company','role','date','status','salaryRange','locationType','city','followUpDate','source','notes','createdAt','lastUpdated'];
 
 // ── State ──────────────────────────────────────────────────
-let apps         = [];
-let activeFilter = 'all';
-let allCompanies = [];      // distinct companies from job_applications for typeahead
+let apps          = [];
+let activeFilter  = 'all';
+let allCompanies  = [];
+let currentUserId = null;
 
 function staleDays(a) {
   if (!a.date) return 0;
   return (Date.now() - new Date(a.date + 'T00:00:00').getTime()) / 86400000;
+}
+
+// ── Auth ──────────────────────────────────────────────────
+let authMode = 'signin';
+
+function showApp()    { document.getElementById('auth-screen').style.display = 'none';  document.getElementById('app').style.display = ''; }
+function showLogin()  { document.getElementById('app').style.display = 'none';  document.getElementById('auth-screen').style.display = ''; }
+
+function setAuthAlert(msg, type) {
+  const el = document.getElementById('auth-alert');
+  el.textContent    = msg;
+  el.className      = `auth-alert ${type}`;
+  el.style.display  = msg ? '' : 'none';
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  const signup = authMode === 'signup';
+  document.getElementById('auth-title').textContent        = signup ? 'Create Account'       : 'Sign In';
+  document.getElementById('auth-submit-btn').textContent   = signup ? 'Create Account'       : 'Sign In';
+  document.getElementById('auth-toggle-label').textContent = signup ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('auth-toggle-btn').textContent   = signup ? 'Sign In'              : 'Create Account';
+  setAuthAlert('', '');
+  document.getElementById('auth-password').value = '';
+}
+
+function authKeydown(e) { if (e.key === 'Enter') authSubmit(); }
+
+async function authSubmit() {
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) { setAuthAlert('Please enter your email and password.', 'error'); return; }
+
+  const btn = document.getElementById('auth-submit-btn');
+  btn.disabled    = true;
+  btn.textContent = authMode === 'signin' ? 'Signing in…' : 'Creating account…';
+  setAuthAlert('', '');
+
+  if (authMode === 'signin') {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthAlert(error.message, 'error');
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+    }
+    // On success, onAuthStateChange fires → showApp() + loadAppData()
+  } else {
+    const { error } = await sb.auth.signUp({ email, password });
+    btn.disabled    = false;
+    btn.textContent = 'Create Account';
+    if (error) {
+      setAuthAlert(error.message, 'error');
+    } else {
+      setAuthAlert('Account created! Check your email to confirm, then sign in.', 'success');
+      authMode = 'signin';
+      document.getElementById('auth-title').textContent        = 'Sign In';
+      document.getElementById('auth-submit-btn').textContent   = 'Sign In';
+      document.getElementById('auth-toggle-label').textContent = "Don't have an account?";
+      document.getElementById('auth-toggle-btn').textContent   = 'Create Account';
+      document.getElementById('auth-password').value = '';
+    }
+  }
+}
+
+async function logout() {
+  apps = [];
+  allCompanies = [];
+  activeFilter = 'all';
+  await sb.auth.signOut();
 }
 
 // ── Companies autocomplete ────────────────────────────────
@@ -649,7 +804,6 @@ function attachAC(inputId, dropdownId) {
     dropdown.classList.add('open');
   });
 
-  // mousedown fires before blur — preventDefault keeps focus so we can set the value
   dropdown.addEventListener('mousedown', e => {
     const opt = e.target.closest('.ac-option');
     if (!opt) return;
@@ -808,33 +962,33 @@ async function openModal(id) {
   if (id) {
     const a = apps.find(x => x.id === id);
     if (!a) return;
-    document.getElementById('modal-title').textContent    = 'Edit Application';
-    document.getElementById('f-company').value           = a.company      || '';
-    document.getElementById('f-role').value              = a.role         || '';
-    document.getElementById('f-date').value              = a.date         || '';
-    document.getElementById('f-followup').value          = a.followUpDate || '';
-    document.getElementById('f-status').innerHTML        = buildStatusOptions(a.status || 'applied');
-    document.getElementById('f-source').value            = a.source       || '';
-    document.getElementById('f-loctype').value           = a.locationType || '';
-    document.getElementById('f-city').value              = a.city         || '';
-    document.getElementById('f-salary').value            = a.salaryRange  || '';
-    document.getElementById('f-notes').value             = a.notes        || '';
-    document.getElementById('btn-delete').style.display  = '';
+    document.getElementById('modal-title').textContent   = 'Edit Application';
+    document.getElementById('f-company').value          = a.company      || '';
+    document.getElementById('f-role').value             = a.role         || '';
+    document.getElementById('f-date').value             = a.date         || '';
+    document.getElementById('f-followup').value         = a.followUpDate || '';
+    document.getElementById('f-status').innerHTML       = buildStatusOptions(a.status || 'applied');
+    document.getElementById('f-source').value           = a.source       || '';
+    document.getElementById('f-loctype').value          = a.locationType || '';
+    document.getElementById('f-city').value             = a.city         || '';
+    document.getElementById('f-salary').value           = a.salaryRange  || '';
+    document.getElementById('f-notes').value            = a.notes        || '';
+    document.getElementById('btn-delete').style.display = '';
     contactsSection.style.display = '';
-    document.getElementById('contact-list').innerHTML    = '<div class="contacts-loading">Loading contacts…</div>';
+    document.getElementById('contact-list').innerHTML   = '<div class="contacts-loading">Loading contacts…</div>';
   } else {
-    document.getElementById('modal-title').textContent    = 'Add Application';
-    document.getElementById('f-status').innerHTML         = buildStatusOptions('applied');
-    document.getElementById('f-company').value           = '';
-    document.getElementById('f-role').value              = '';
-    document.getElementById('f-date').value              = todayStr();
-    document.getElementById('f-followup').value          = '';
-    document.getElementById('f-source').value            = '';
-    document.getElementById('f-loctype').value           = '';
-    document.getElementById('f-city').value              = '';
-    document.getElementById('f-salary').value            = '';
-    document.getElementById('f-notes').value             = '';
-    document.getElementById('btn-delete').style.display  = 'none';
+    document.getElementById('modal-title').textContent   = 'Add Application';
+    document.getElementById('f-status').innerHTML        = buildStatusOptions('applied');
+    document.getElementById('f-company').value          = '';
+    document.getElementById('f-role').value             = '';
+    document.getElementById('f-date').value             = todayStr();
+    document.getElementById('f-followup').value         = '';
+    document.getElementById('f-source').value           = '';
+    document.getElementById('f-loctype').value          = '';
+    document.getElementById('f-city').value             = '';
+    document.getElementById('f-salary').value           = '';
+    document.getElementById('f-notes').value            = '';
+    document.getElementById('btn-delete').style.display = 'none';
     contactsSection.style.display = 'none';
   }
 
@@ -897,7 +1051,6 @@ async function saveApplication() {
     return;
   }
 
-  // Keep typeahead list current with any newly typed company
   if (!allCompanies.includes(company)) {
     allCompanies = [...allCompanies, company].sort((a, b) => a.localeCompare(b));
   }
@@ -909,13 +1062,8 @@ async function saveApplication() {
 
 async function deleteEditing() {
   if (!editingId) return;
-  if (!confirm('Delete this application? All linked contacts will be unlinked (contacts themselves are kept).')) return;
-  try {
-    await dbDelete(editingId);
-  } catch (err) {
-    alert('Failed to delete: ' + err.message);
-    return;
-  }
+  if (!confirm('Delete this application?')) return;
+  try { await dbDelete(editingId); } catch (err) { alert('Failed to delete: ' + err.message); return; }
   apps = apps.filter(a => a.id !== editingId);
   closeModal();
   render();
@@ -923,12 +1071,7 @@ async function deleteEditing() {
 
 async function deleteApp(id) {
   if (!confirm('Delete this application?')) return;
-  try {
-    await dbDelete(id);
-  } catch (err) {
-    alert('Failed to delete: ' + err.message);
-    return;
-  }
+  try { await dbDelete(id); } catch (err) { alert('Failed to delete: ' + err.message); return; }
   apps = apps.filter(a => a.id !== id);
   render();
 }
@@ -944,8 +1087,6 @@ async function loadAndRenderContacts(appId) {
       '<div class="contacts-empty">Save the application first to manage contacts.</div>';
     return;
   }
-
-  // Load all contacts whose company matches (case-insensitive)
   const { data, error } = await sb
     .from('contacts')
     .select('*')
@@ -957,7 +1098,6 @@ async function loadAndRenderContacts(appId) {
       '<div class="contacts-empty">Failed to load contacts.</div>';
     return;
   }
-
   currentContacts = data || [];
   renderContacts();
 }
@@ -971,17 +1111,14 @@ function renderContacts() {
   if (!active.length && !inactive.length) {
     html = '<div class="contacts-empty">No contacts at this company yet — add a recruiter, employee, or anyone you spoke with.</div>';
   } else {
-    if (active.length) {
-      html += active.map(c => contactCardHTML(c)).join('');
-    } else {
-      html += '<div class="contacts-empty">No active contacts. Add someone you spoke with.</div>';
-    }
+    html += active.length
+      ? active.map(c => contactCardHTML(c)).join('')
+      : '<div class="contacts-empty">No active contacts.</div>';
     if (inactive.length) {
       html += `<div class="inactive-divider"><span>Inactive</span></div>`;
       html += inactive.map(c => contactCardHTML(c, true)).join('');
     }
   }
-
   el.innerHTML = html;
 }
 
@@ -1000,7 +1137,6 @@ function contactCardHTML(c, isInactive = false) {
   </div>`;
 }
 
-// ── Contact Modal ─────────────────────────────────────────
 function openContactModal(contactId) {
   editingContactId = contactId || null;
   const statusBtn  = document.getElementById('c-btn-status');
@@ -1016,14 +1152,8 @@ function openContactModal(contactId) {
     document.getElementById('c-phone').value        = c.phone        || '';
     document.getElementById('c-relationship').value = c.relationship || '';
     document.getElementById('c-notes').value        = c.notes        || '';
-
-    if (c.status === 'active') {
-      statusBtn.textContent  = 'Mark Inactive';
-      statusBtn.className    = 'btn-deactivate';
-    } else {
-      statusBtn.textContent  = 'Reactivate';
-      statusBtn.className    = 'btn-reactivate';
-    }
+    statusBtn.textContent = c.status === 'active' ? 'Mark Inactive' : 'Reactivate';
+    statusBtn.className   = c.status === 'active' ? 'btn-deactivate' : 'btn-reactivate';
     statusBtn.style.display = '';
   } else {
     document.getElementById('contact-modal-title').textContent = 'Add Contact';
@@ -1051,20 +1181,14 @@ function handleContactOverlayClick(e) {
 
 async function toggleContactStatus() {
   if (!editingContactId) return;
-  const c          = currentContacts.find(x => x.id === editingContactId);
+  const c         = currentContacts.find(x => x.id === editingContactId);
   if (!c) return;
-  const newStatus  = c.status === 'active' ? 'inactive' : 'active';
-  const verb       = newStatus === 'inactive' ? 'Mark this contact as inactive?' : 'Reactivate this contact?';
-  if (!confirm(verb)) return;
-
+  const newStatus = c.status === 'active' ? 'inactive' : 'active';
+  if (!confirm(newStatus === 'inactive' ? 'Mark this contact as inactive?' : 'Reactivate this contact?')) return;
   const now = new Date().toISOString();
-  const { error } = await sb.from('contacts')
-    .update({ status: newStatus, last_updated: now })
-    .eq('id', editingContactId);
+  const { error } = await sb.from('contacts').update({ status: newStatus, last_updated: now }).eq('id', editingContactId);
   if (error) { alert('Failed to update: ' + error.message); return; }
-
-  c.status       = newStatus;
-  c.last_updated = now;
+  c.status = newStatus; c.last_updated = now;
   closeContactModal();
   renderContacts();
 }
@@ -1072,21 +1196,20 @@ async function toggleContactStatus() {
 async function saveContact() {
   const name = document.getElementById('c-name').value.trim();
   if (!name) { alert('Name is required.'); return; }
-
   const now = new Date().toISOString();
   const row = {
     name,
-    title:        document.getElementById('c-title').value.trim()        || null,
-    company:      document.getElementById('c-company').value.trim()      || null,
-    email:        document.getElementById('c-email').value.trim()        || null,
-    phone:        document.getElementById('c-phone').value.trim()        || null,
-    relationship: document.getElementById('c-relationship').value        || null,
-    notes:        document.getElementById('c-notes').value.trim()        || null,
+    user_id:      currentUserId,
+    title:        document.getElementById('c-title').value.trim()   || null,
+    company:      document.getElementById('c-company').value.trim() || null,
+    email:        document.getElementById('c-email').value.trim()   || null,
+    phone:        document.getElementById('c-phone').value.trim()   || null,
+    relationship: document.getElementById('c-relationship').value   || null,
+    notes:        document.getElementById('c-notes').value.trim()   || null,
     last_updated: now,
   };
 
   if (editingContactId) {
-    // Update existing contact
     row.id         = editingContactId;
     row.status     = currentContacts.find(c => c.id === editingContactId)?.status || 'active';
     row.created_at = currentContacts.find(c => c.id === editingContactId)?.created_at || now;
@@ -1095,28 +1218,17 @@ async function saveContact() {
     const idx = currentContacts.findIndex(c => c.id === editingContactId);
     currentContacts[idx] = { ...currentContacts[idx], ...row };
   } else {
-    // Create new contact
-    row.id         = Date.now().toString();
-    row.status     = 'active';
-    row.created_at = now;
+    row.id = Date.now().toString(); row.status = 'active'; row.created_at = now;
     const { error } = await sb.from('contacts').insert(row);
     if (error) { alert('Failed to save: ' + error.message); return; }
     currentContacts.push(row);
-
-    // Record the junction link for this application
     if (editingId) {
-      await sb.from('application_contacts').upsert({
-        application_id: editingId,
-        contact_id:     row.id,
-      });
+      await sb.from('application_contacts').upsert({ application_id: editingId, contact_id: row.id });
     }
-
-    // Add new company to typeahead if needed
     if (row.company && !allCompanies.includes(row.company)) {
       allCompanies = [...allCompanies, row.company].sort((a, b) => a.localeCompare(b));
     }
   }
-
   closeContactModal();
   renderContacts();
 }
@@ -1134,14 +1246,9 @@ function csvCell(v) {
 }
 
 // ── CSV Import ────────────────────────────────────────────
-function openImport() {
-  document.getElementById('import-file').value = '';
-  document.getElementById('import-overlay').classList.add('open');
-}
+function openImport() { document.getElementById('import-file').value = ''; document.getElementById('import-overlay').classList.add('open'); }
 function closeImport() { document.getElementById('import-overlay').classList.remove('open'); }
-function handleImportOverlayClick(e) {
-  if (e.target === document.getElementById('import-overlay')) closeImport();
-}
+function handleImportOverlayClick(e) { if (e.target === document.getElementById('import-overlay')) closeImport(); }
 function doImport() {
   const file = document.getElementById('import-file').files[0];
   if (!file) { alert('Please select a CSV file.'); return; }
@@ -1149,16 +1256,10 @@ function doImport() {
   reader.onload = async e => {
     try {
       const newApps = parseCSVtoNewApps(e.target.result);
-      if (newApps.length > 0) {
-        await dbUpsertMany(newApps);
-        apps.push(...newApps);
-      }
-      closeImport();
-      render();
+      if (newApps.length > 0) { await dbUpsertMany(newApps); apps.push(...newApps); }
+      closeImport(); render();
       alert(`Import complete. ${newApps.length} new application${newApps.length !== 1 ? 's' : ''} added.`);
-    } catch (err) {
-      alert('Failed to import: ' + err.message);
-    }
+    } catch (err) { alert('Failed to import: ' + err.message); }
   };
   reader.readAsText(file);
 }
@@ -1197,8 +1298,7 @@ function parseCSVtoNewApps(text) {
   return newApps;
 }
 function parseCSVRow(line) {
-  const cells = [];
-  let cur = '', inQ = false;
+  const cells = []; let cur = '', inQ = false;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (inQ) {
@@ -1211,8 +1311,7 @@ function parseCSVRow(line) {
       else { cur += ch; }
     }
   }
-  cells.push(cur);
-  return cells;
+  cells.push(cur); return cells;
 }
 
 // ── Helpers ───────────────────────────────────────────────
@@ -1222,8 +1321,7 @@ function esc(str) {
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function addDays(dateStr, n) {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + n);
+  const d = new Date(dateStr + 'T00:00:00'); d.setDate(d.getDate() + n);
   return d.toISOString().split('T')[0];
 }
 function formatDate(d) {
@@ -1234,12 +1332,8 @@ function formatDate(d) {
 function downloadFile(content, filename, mime) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type: mime }));
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
 }
-
-// ── Subtitle & render ─────────────────────────────────────
 function updateSubtitle() {
   const n      = apps.length;
   const active = apps.filter(a => !TERMINAL.has(a.status)).length;
@@ -1247,33 +1341,21 @@ function updateSubtitle() {
     n === 0 ? 'Track your applications'
     : `${n} application${n !== 1 ? 's' : ''} · ${active} active`;
 }
-function fullRender() {
-  updateSubtitle();
-  renderDashboard();
-  renderFilters();
-  renderTable();
-}
+function fullRender() { updateSubtitle(); renderDashboard(); renderFilters(); renderTable(); }
 function render() { fullRender(); }
 
-// ── Init ──────────────────────────────────────────────────
-initCompanyAutocomplete();
-
-(async function init() {
+// ── App data loader (called after auth) ───────────────────
+async function loadAppData() {
   document.getElementById('main').innerHTML =
     '<div class="empty"><p style="color:#667eea">Loading…</p></div>';
 
   // One-time migration from localStorage
   const local = JSON.parse(localStorage.getItem('job-tracker') || '[]');
   if (local.length) {
-    try {
-      await dbUpsertMany(local);
-      localStorage.removeItem('job-tracker');
-    } catch (err) {
-      console.error('Migration error:', err);
-    }
+    try { await dbUpsertMany(local); localStorage.removeItem('job-tracker'); }
+    catch (err) { console.error('Migration error:', err); }
   }
 
-  // Load applications and companies in parallel
   const [appsResult] = await Promise.all([
     sb.from('job_applications').select('*').order('created_at', { ascending: false }),
     loadCompanies(),
@@ -1288,7 +1370,24 @@ initCompanyAutocomplete();
   apps = (appsResult.data || []).map(fromRow);
   await runAutoUpdate();
   fullRender();
-})();
+}
+
+// ── Bootstrap ─────────────────────────────────────────────
+initCompanyAutocomplete();
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session) {
+    currentUserId = session.user.id;
+    showApp();
+    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+      await loadAppData();
+    }
+  } else {
+    currentUserId = null;
+    apps = []; allCompanies = []; activeFilter = 'all';
+    showLogin();
+  }
+});
 </script>
 </body>
 </html>
