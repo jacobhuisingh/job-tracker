@@ -613,8 +613,8 @@
 <script>
 // ── Supabase ──────────────────────────────────────────────
 const sb = supabase.createClient(
-  '%%SUPABASE_URL%%',
-  '%%SUPABASE_ANON_KEY%%'
+  'https://puidoehyimlndayjfvot.supabase.co',
+  'sb_publishable_SjzxBWHr0RpXZmDwWOjfHw_0WcsgmY8'
 );
 
 // ── Application row mapping ───────────────────────────────
@@ -703,25 +703,30 @@ function staleDays(a) {
 // ── Auth ──────────────────────────────────────────────────
 let authMode = 'signin';
 
-function showApp()    { document.getElementById('auth-screen').style.display = 'none';  document.getElementById('app').style.display = ''; }
-function showLogin()  { document.getElementById('app').style.display = 'none';  document.getElementById('auth-screen').style.display = ''; }
+function showApp()   { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app').style.display = ''; }
+function showLogin() { document.getElementById('app').style.display = 'none'; document.getElementById('auth-screen').style.display = ''; }
 
 function setAuthAlert(msg, type) {
   const el = document.getElementById('auth-alert');
-  el.textContent    = msg;
-  el.className      = `auth-alert ${type}`;
-  el.style.display  = msg ? '' : 'none';
+  el.textContent   = msg;
+  el.className     = `auth-alert ${type}`;
+  el.style.display = msg ? '' : 'none';
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const signup = mode === 'signup';
+  document.getElementById('auth-title').textContent        = signup ? 'Create Account'         : 'Sign In';
+  document.getElementById('auth-submit-btn').textContent   = signup ? 'Create Account'         : 'Sign In';
+  document.getElementById('auth-toggle-label').textContent = signup ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('auth-toggle-btn').textContent   = signup ? 'Sign In'                : 'Create Account';
+  setAuthAlert('', '');
 }
 
 function toggleAuthMode() {
-  authMode = authMode === 'signin' ? 'signup' : 'signin';
-  const signup = authMode === 'signup';
-  document.getElementById('auth-title').textContent        = signup ? 'Create Account'       : 'Sign In';
-  document.getElementById('auth-submit-btn').textContent   = signup ? 'Create Account'       : 'Sign In';
-  document.getElementById('auth-toggle-label').textContent = signup ? 'Already have an account?' : "Don't have an account?";
-  document.getElementById('auth-toggle-btn').textContent   = signup ? 'Sign In'              : 'Create Account';
-  setAuthAlert('', '');
+  setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
   document.getElementById('auth-password').value = '';
+  document.getElementById(authMode === 'signup' ? 'auth-email' : 'auth-password').focus();
 }
 
 function authKeydown(e) { if (e.key === 'Enter') authSubmit(); }
@@ -729,36 +734,65 @@ function authKeydown(e) { if (e.key === 'Enter') authSubmit(); }
 async function authSubmit() {
   const email    = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
-  if (!email || !password) { setAuthAlert('Please enter your email and password.', 'error'); return; }
 
-  const btn = document.getElementById('auth-submit-btn');
+  if (!email)    { setAuthAlert('Please enter your email address.', 'error'); document.getElementById('auth-email').focus(); return; }
+  if (!password) { setAuthAlert('Please enter your password.', 'error'); document.getElementById('auth-password').focus(); return; }
+
+  const btn     = document.getElementById('auth-submit-btn');
+  const isSignup = authMode === 'signup';
   btn.disabled    = true;
-  btn.textContent = authMode === 'signin' ? 'Signing in…' : 'Creating account…';
+  btn.textContent = isSignup ? 'Creating account…' : 'Signing in…';
   setAuthAlert('', '');
 
-  if (authMode === 'signin') {
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      setAuthAlert(error.message, 'error');
-      btn.disabled    = false;
-      btn.textContent = 'Sign In';
-    }
-    // On success, onAuthStateChange fires → showApp() + loadAppData()
-  } else {
-    const { error } = await sb.auth.signUp({ email, password });
-    btn.disabled    = false;
-    btn.textContent = 'Create Account';
-    if (error) {
-      setAuthAlert(error.message, 'error');
+  try {
+    if (!isSignup) {
+      // ── Sign in ──
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        const msg = error.message === 'Invalid login credentials'
+          ? 'Incorrect email or password.'
+          : error.message;
+        setAuthAlert(msg, 'error');
+        btn.disabled    = false;
+        btn.textContent = 'Sign In';
+      }
+      // On success onAuthStateChange fires → showApp() + loadAppData()
+
     } else {
-      setAuthAlert('Account created! Check your email to confirm, then sign in.', 'success');
-      authMode = 'signin';
-      document.getElementById('auth-title').textContent        = 'Sign In';
-      document.getElementById('auth-submit-btn').textContent   = 'Sign In';
-      document.getElementById('auth-toggle-label').textContent = "Don't have an account?";
-      document.getElementById('auth-toggle-btn').textContent   = 'Create Account';
-      document.getElementById('auth-password').value = '';
+      // ── Sign up ──
+      const { data, error } = await sb.auth.signUp({ email, password });
+
+      if (error) {
+        const msg = error.message.includes('already registered')
+          ? 'An account with this email already exists. Try signing in instead.'
+          : error.message;
+        setAuthAlert(msg, 'error');
+        btn.disabled    = false;
+        btn.textContent = 'Create Account';
+
+      } else if (data.session) {
+        // Email confirmation is disabled — user is immediately signed in.
+        // onAuthStateChange will fire SIGNED_IN and call showApp() + loadAppData().
+        // Nothing else needed here.
+
+      } else {
+        // Email confirmation is required — tell the user to check their inbox.
+        setAuthAlert(
+          'Account created! Check your email for a confirmation link, then sign in.',
+          'success'
+        );
+        btn.disabled    = false;
+        btn.textContent = 'Create Account';
+        // Switch back to sign-in mode so they can log in after confirming
+        setTimeout(() => setAuthMode('signin'), 4000);
+      }
     }
+  } catch (err) {
+    // Network errors or unexpected exceptions
+    console.error('Auth error:', err);
+    setAuthAlert('Something went wrong. Check your connection and try again.', 'error');
+    btn.disabled    = false;
+    btn.textContent = isSignup ? 'Create Account' : 'Sign In';
   }
 }
 

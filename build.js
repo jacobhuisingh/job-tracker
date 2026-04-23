@@ -10,8 +10,14 @@ if (!url || !key) {
 }
 
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-html = html.replace('%%SUPABASE_URL%%', url);
-html = html.replace('%%SUPABASE_ANON_KEY%%', key);
+html = html.replace(
+  "'https://puidoehyimlndayjfvot.supabase.co'",
+  `'${url}'`
+);
+html = html.replace(
+  "'sb_publishable_SjzxBWHr0RpXZmDwWOjfHw_0WcsgmY8'",
+  `'${key}'`
+);
 
 fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'dist', 'index.html'), html);
